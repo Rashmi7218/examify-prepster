@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -9,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 // Mock AWS exam data for AI Practitioner
-const mockExamQuestions = [
+const mockExamQuestions: QuestionType[] = [
   {
     id: "q1",
     text: "What is a valid data format for instruction-based fine-tuning?",

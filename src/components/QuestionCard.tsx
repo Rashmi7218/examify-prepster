@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import AnswerExplanation from "./AnswerExplanation";
@@ -12,6 +11,8 @@ export type QuestionType = {
   explanation: string;
   type: "single" | "multiple" | "truefalse";
   learnMoreLink?: { text: string; url: string };
+  tasks?: { id: string; text: string; correctId: string }[];
+  correctOptionIds?: string[];
 };
 
 type QuestionCardProps = {
