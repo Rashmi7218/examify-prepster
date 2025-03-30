@@ -27,8 +27,8 @@ export const convertJsonToQuestions = (jsonQuestions: any[]): QuestionType[] => 
   });
 };
 
-// Sample JSON data (the one provided in the request)
-export const sampleJsonQuestions = [
+// Using the JSON data provided by the user
+const athenaJsonQuestions = [
   {
     "question": "Which of the following is NOT a supported SerDe (Serializer/Deserializer) in Athena?",
     "options": [
@@ -53,8 +53,8 @@ export const sampleJsonQuestions = [
   }
 ];
 
-// Convert sample JSON to QuestionType
-export const athenaQuestions = convertJsonToQuestions(sampleJsonQuestions);
+// Convert the JSON data to QuestionType
+export const athenaQuestions = convertJsonToQuestions(athenaJsonQuestions);
 
 // Mock AWS exam data for AI Practitioner (keep this for backwards compatibility)
 export const awsAIPractitionerQuestions: QuestionType[] = [
