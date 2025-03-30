@@ -83,7 +83,7 @@
   }
   
   .question-card {
-    @apply p-6 border border-gray-200 rounded-lg shadow-sm bg-white animate-fade-in;
+    @apply p-6 border-gray-200 rounded-lg bg-white;
   }
   
   .option-btn {
@@ -103,6 +103,35 @@
   }
   
   .explanation-card {
-    @apply p-4 mt-4 bg-blue-50 border border-examify-blue rounded-lg;
+    @apply p-4 mt-4 border rounded-lg;
+  }
+
+  /* AWS UI specific styles */
+  .aws-header {
+    @apply bg-indigo-900 text-white py-3 px-4 flex justify-between items-center;
+  }
+  
+  .aws-logo {
+    @apply h-8;
+  }
+  
+  .aws-nav {
+    @apply flex space-x-4;
+  }
+  
+  .aws-button {
+    @apply bg-indigo-900 hover:bg-indigo-800 text-white py-2 px-4 rounded;
+  }
+  
+  .aws-button-green {
+    @apply bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded;
+  }
+  
+  .aws-link {
+    @apply text-blue-600 hover:underline;
+  }
+  
+  .question-container {
+    @apply p-6 border-gray-100;
   }
 }

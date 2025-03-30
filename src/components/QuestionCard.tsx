@@ -11,6 +11,7 @@ export type QuestionType = {
   correctOptionId: string;
   explanation: string;
   type: "single" | "multiple" | "truefalse";
+  learnMoreLink?: { text: string; url: string };
 };
 
 type QuestionCardProps = {
@@ -56,75 +57,75 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
 
   const isCorrect = selectedOptionId === question.correctOptionId;
 
+  const renderOption = (option: { id: string; text: string }, letter: string) => {
+    const isSelected = selectedOptionId === option.id;
+    const isCorrectOption = option.id === question.correctOptionId;
+    const showCorrectIndicator = isAnswered && isCorrectOption;
+    const showIncorrectIndicator = isAnswered && isSelected && !isCorrect;
+
+    return (
+      <button
+        key={option.id}
+        className={`
+          w-full text-left p-4 mb-3 border rounded-md transition-all
+          ${isSelected ? "border-examify-blue" : "border-gray-200"}
+          ${showCorrectIndicator ? "bg-green-50 border-green-500" : ""}
+          ${showIncorrectIndicator ? "bg-red-50 border-red-500" : ""}
+          ${!isAnswered ? "hover:bg-gray-50" : ""}
+        `}
+        onClick={() => handleOptionSelect(option.id)}
+        disabled={isAnswered}
+      >
+        <div className="flex items-center">
+          <div className="w-8 h-8 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center mr-3 flex-shrink-0">
+            {letter}
+          </div>
+          <span className="flex-1">{option.text}</span>
+          {showCorrectIndicator && (
+            <CheckCircle className="text-green-500 ml-2 flex-shrink-0" size={20} />
+          )}
+          {showIncorrectIndicator && (
+            <XCircle className="text-red-500 ml-2 flex-shrink-0" size={20} />
+          )}
+        </div>
+      </button>
+    );
+  };
+
   return (
     <div className="question-card">
-      <h3 className="text-xl font-medium mb-4">{question.text}</h3>
+      <h3 className="text-xl font-medium mb-6">{question.text}</h3>
       
       <div className="space-y-2 mb-6">
-        {question.options.map((option) => (
-          <button
-            key={option.id}
-            className={`option-btn ${
-              selectedOptionId === option.id
-                ? "selected"
-                : ""
-            } ${
-              isAnswered && option.id === question.correctOptionId
-                ? "correct"
-                : ""
-            } ${
-              isAnswered && selectedOptionId === option.id && !isCorrect
-                ? "incorrect"
-                : ""
-            }`}
-            onClick={() => handleOptionSelect(option.id)}
-            disabled={isAnswered}
-          >
-            <div className="flex items-center justify-between">
-              <span>{option.text}</span>
-              {isAnswered && option.id === question.correctOptionId && (
-                <CheckCircle className="text-green-500" size={20} />
-              )}
-              {isAnswered && selectedOptionId === option.id && !isCorrect && (
-                <XCircle className="text-red-500" size={20} />
-              )}
-            </div>
-          </button>
-        ))}
+        {question.options.map((option, index) => 
+          renderOption(option, String.fromCharCode(65 + index)) // A, B, C, D, etc.
+        )}
       </div>
 
       {showExplanation && selectedOptionId && (
         <AnswerExplanation
           isCorrect={isCorrect}
           explanation={question.explanation}
+          learnMoreLink={question.learnMoreLink}
         />
       )}
 
-      <div className="mt-6 flex justify-between">
+      <div className="mt-8 flex justify-end">
         {!isAnswered ? (
           <Button 
             onClick={handleSubmit} 
             disabled={!selectedOptionId}
-            className="bg-examify-blue hover:bg-blue-600"
+            className="bg-indigo-900 hover:bg-indigo-800 text-white"
           >
-            Submit Answer
+            Confirm
           </Button>
         ) : (
-          isLastQuestion ? (
-            <Button 
-              onClick={handleComplete}
-              className="bg-examify-teal hover:bg-teal-600"
-            >
-              Complete Exam
-            </Button>
-          ) : (
-            <Button 
-              onClick={handleNext}
-              className="bg-examify-blue hover:bg-blue-600"
-            >
-              Next Question
-            </Button>
-          )
+          <Button 
+            onClick={isLastQuestion ? handleComplete : handleNext}
+            className="bg-indigo-900 hover:bg-indigo-800 text-white"
+          >
+            Continue
+          </Button>
         )}
       </div>
     </div>
