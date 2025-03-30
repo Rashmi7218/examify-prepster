@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import AnswerExplanation from "./AnswerExplanation";
@@ -7,7 +8,7 @@ export type QuestionType = {
   id: string;
   text: string;
   options: { id: string; text: string }[];
-  correctOptionId: string;
+  correctOptionId?: string;
   explanation: string;
   type: "single" | "multiple" | "truefalse";
   learnMoreLink?: { text: string; url: string };
@@ -56,11 +57,16 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     onComplete();
   };
 
-  const isCorrect = selectedOptionId === question.correctOptionId;
+  // For single and truefalse types, use correctOptionId
+  const isCorrect = question.type === "multiple" 
+    ? question.correctOptionIds?.includes(selectedOptionId || "") 
+    : selectedOptionId === question.correctOptionId;
 
   const renderOption = (option: { id: string; text: string }, letter: string) => {
     const isSelected = selectedOptionId === option.id;
-    const isCorrectOption = option.id === question.correctOptionId;
+    const isCorrectOption = question.type === "multiple" 
+      ? question.correctOptionIds?.includes(option.id)
+      : option.id === question.correctOptionId;
     const showCorrectIndicator = isAnswered && isCorrectOption;
     const showIncorrectIndicator = isAnswered && isSelected && !isCorrect;
 
