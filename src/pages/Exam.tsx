@@ -1,13 +1,13 @@
+
 import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import ExamProgress from "@/components/ExamProgress";
-import QuestionCard, { QuestionType } from "@/components/QuestionCard";
-import MultipleSelectQuestion from "@/components/MultipleSelectQuestion";
-import MatchingQuestion from "@/components/MatchingQuestion";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { QuestionType } from "@/components/QuestionCard";
 import { awsAIPractitionerQuestions, athenaQuestions } from "@/utils/examData";
+import ExamProgress from "@/components/exam/ExamProgress";
+import ExamIntro from "@/components/exam/ExamIntro";
+import QuestionRenderer from "@/components/exam/QuestionRenderer";
 
 const EXAM_TIME = 20 * 60; // 20 minutes in seconds
 const QUESTION_TIME = 3 * 60; // 3 minutes per question
@@ -16,6 +16,7 @@ const Exam = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { type } = useParams();
+  const [searchParams] = useSearchParams();
   const examType = type || searchParams.get('type') || 'ai-practitioner';
   
   // Get questions based on the exam type from URL
@@ -107,8 +108,13 @@ const Exam = () => {
         let allTasksCorrect = true;
         
         tasks.forEach(task => {
-          const questionAnswers = selectedAnswers[question.id] as Record<string, string> || {};
-          if (questionAnswers[task.id] !== task.correctId) {
+          // Need to handle this as Record<string, string> not string[]
+          const questionAnswer = selectedAnswers[question.id];
+          const matchingAnswers = typeof questionAnswer === 'object' && !Array.isArray(questionAnswer) 
+            ? questionAnswer 
+            : {};
+            
+          if (matchingAnswers[task.id] !== task.correctId) {
             allTasksCorrect = false;
           }
         });
@@ -179,118 +185,16 @@ const Exam = () => {
     return true;
   };
 
-  // Get the exam title based on type
-  const getExamTitle = () => {
-    switch(examType) {
-      case 'athena':
-        return 'AWS Athena SerDe Practice Questions';
-      case 'ai-practitioner':
-      default:
-        return 'AWS Certified AI Practitioner Official Practice Question Set (AIF-C01 - English)';
-    }
-  };
-
   // If not yet started, show intro screen
   if (!examStarted) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-sm border">
-            <h1 className="text-2xl font-bold mb-2 text-center">{getExamTitle()}</h1>
-            
-            <div className="my-8">
-              <h2 className="text-xl font-semibold mb-4">AWS Exam Preparation Official Question Sets Overview and Instructions</h2>
-              <p className="mb-4">
-                AWS Official Practice Question Sets feature questions developed by AWS that demonstrate the style of AWS certification exams.
-                These exam-style questions include detailed feedback and recommended resources to help you prepare for your exam.
-              </p>
-              <p className="mb-6">
-                Download a copy of the Official Practice Question Sets Overview and Instructions as a PDF document to refer to while you complete the Practice Exam below:
-              </p>
-              
-              <div className="bg-blue-50 border border-blue-100 rounded-md p-4 flex items-center gap-3 mb-6">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500">
-                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                </svg>
-                <a href="#" className="text-blue-600 hover:underline">AWS Exam Preparation Official Practice Question Sets Overview and Instructions.pdf</a>
-              </div>
-              
-              <h2 className="text-xl font-semibold mb-4">Customer Support</h2>
-              <p className="mb-4">
-                If you need assistance, contact AWS Training and Certification Customer Service. Use the following information when you complete the form:
-              </p>
-              
-              <ul className="list-disc pl-8 space-y-2 mb-6">
-                <li><strong>Inquiry type dropdown menu:</strong> Choose Certification.</li>
-                <li><strong>Additional details dropdown menu:</strong> Choose AWS Exam Preparation.</li>
-                <li><strong>How can we help you? text box:</strong> Include the name of the Practice Exam and a detailed description of your issue.</li>
-              </ul>
-            </div>
-            
-            <div className="flex justify-between mt-8">
-              <Button 
-                variant="outline"
-                className="border-gray-300"
-                onClick={() => navigate("/")}
-              >
-                Return To Product Dashboard
-              </Button>
-              
-              <Button 
-                onClick={startExam} 
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                Start
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <ExamIntro 
+      examType={examType} 
+      onStart={startExam} 
+      onReturn={() => navigate("/")} 
+    />;
   }
 
   const currentQuestion = mockExamQuestions[currentQuestionIndex];
-
-  const renderQuestion = () => {
-    switch (currentQuestion.type) {
-      case 'multiple':
-        return (
-          <MultipleSelectQuestion
-            questionText={currentQuestion.text}
-            options={currentQuestion.options}
-            correctOptionIds={currentQuestion.correctOptionIds || []}
-            onConfirm={handleMultipleSelectSubmit}
-          />
-        );
-      
-      case 'type-2':
-        return (
-          <MatchingQuestion
-            questionText={currentQuestion.text}
-            tasks={currentQuestion.tasks || []}
-            options={currentQuestion.options}
-            onComplete={
-              currentQuestionIndex === mockExamQuestions.length - 1 
-                ? completeExam 
-                : handleNextQuestion
-            }
-          />
-        );
-        
-      case 'type-1':
-      case 'single':
-      default:
-        return (
-          <QuestionCard
-            question={currentQuestion}
-            onNext={handleNextQuestion}
-            isLastQuestion={currentQuestionIndex === mockExamQuestions.length - 1}
-            onComplete={completeExam}
-          />
-        );
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -305,7 +209,13 @@ const Exam = () => {
           />
           
           <div className="bg-white p-6 rounded-lg shadow-sm border">
-            {renderQuestion()}
+            <QuestionRenderer
+              question={currentQuestion}
+              onNext={handleNextQuestion}
+              onComplete={completeExam}
+              isLastQuestion={currentQuestionIndex === mockExamQuestions.length - 1}
+              onMultipleSelectSubmit={handleMultipleSelectSubmit}
+            />
           </div>
         </div>
       </div>

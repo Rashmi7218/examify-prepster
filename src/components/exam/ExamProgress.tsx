@@ -1,6 +1,5 @@
 
 import React from "react";
-import { Progress } from "@/components/ui/progress";
 import { Clock } from "lucide-react";
 
 type ExamProgressProps = {
