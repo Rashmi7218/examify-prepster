@@ -21,6 +21,7 @@ type QuestionCardProps = {
   onNext: () => void;
   isLastQuestion: boolean;
   onComplete: () => void;
+  onAnswerSelected?: (isCorrect: boolean) => void;
 };
 
 const QuestionCard: React.FC<QuestionCardProps> = ({
@@ -28,6 +29,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   onNext,
   isLastQuestion,
   onComplete,
+  onAnswerSelected
 }) => {
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
@@ -43,6 +45,16 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     if (selectedOptionId) {
       setIsAnswered(true);
       setShowExplanation(true);
+      
+      // For single and truefalse types, use correctOptionId
+      const isCorrect = question.type === "multiple" 
+        ? question.correctOptionIds?.includes(selectedOptionId || "") 
+        : selectedOptionId === question.correctOptionId;
+        
+      // Call the answer selected callback if provided
+      if (onAnswerSelected) {
+        onAnswerSelected(isCorrect);
+      }
     }
   };
 

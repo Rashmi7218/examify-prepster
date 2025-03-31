@@ -12,6 +12,13 @@ import QuestionRenderer from "@/components/exam/QuestionRenderer";
 const EXAM_TIME = 20 * 60; // 20 minutes in seconds
 const QUESTION_TIME = 3 * 60; // 3 minutes per question
 
+type QuestionMetric = {
+  id: string;
+  isCorrect: boolean;
+  timeTaken: number; // in seconds
+  text: string;
+};
+
 const Exam = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -37,6 +44,8 @@ const Exam = () => {
   const [totalTimeRemaining, setTotalTimeRemaining] = useState(EXAM_TIME);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string | string[]>>({});
   const [examStarted, setExamStarted] = useState(false);
+  const [questionStartTime, setQuestionStartTime] = useState<number>(0);
+  const [questionMetrics, setQuestionMetrics] = useState<QuestionMetric[]>([]);
   
   // Redirect if not logged in
   useEffect(() => {
@@ -45,6 +54,13 @@ const Exam = () => {
       navigate("/login");
     }
   }, [user, navigate]);
+
+  // Set question start time when starting the exam or moving to next question
+  useEffect(() => {
+    if (examStarted) {
+      setQuestionStartTime(Date.now());
+    }
+  }, [examStarted, currentQuestionIndex]);
 
   // Timer countdown
   useEffect(() => {
@@ -67,6 +83,7 @@ const Exam = () => {
 
   const startExam = () => {
     setExamStarted(true);
+    setQuestionStartTime(Date.now());
   };
 
   const handleNextQuestion = () => {
@@ -84,6 +101,22 @@ const Exam = () => {
     }));
   };
 
+  const handleAnswerSubmit = (questionId: string, isCorrect: boolean, timeTaken: number) => {
+    const question = mockExamQuestions.find(q => q.id === questionId);
+    
+    if (question) {
+      setQuestionMetrics(prev => [
+        ...prev,
+        {
+          id: questionId,
+          isCorrect,
+          timeTaken,
+          text: question.text
+        }
+      ]);
+    }
+  };
+
   const pauseExam = () => {
     // Could implement pause functionality here
     toast.info("Exam paused");
@@ -92,81 +125,69 @@ const Exam = () => {
   const completeExam = () => {
     // Calculate results
     let correctAnswers = 0;
+    const totalTimeTaken = EXAM_TIME - totalTimeRemaining;
     
-    mockExamQuestions.forEach((question) => {
-      if (question.type === 'multiple') {
-        // For multiple select questions
-        const selectedIds = selectedAnswers[question.id] as string[] || [];
-        const correctIds = question.correctOptionIds || [];
-        if (arraysEqual(selectedIds.sort(), correctIds.sort())) {
-          correctAnswers++;
-        }
-      } else if (question.type === 'type-2') {
-        // For matching type questions
-        // We'll count this as a single question for now, but could be more granular
-        const tasks = question.tasks || [];
-        let allTasksCorrect = true;
-        
-        tasks.forEach(task => {
-          // Need to handle this as Record<string, string> not string[]
-          const questionAnswer = selectedAnswers[question.id];
-          const matchingAnswers = typeof questionAnswer === 'object' && !Array.isArray(questionAnswer) 
-            ? questionAnswer 
-            : {};
-            
-          if (matchingAnswers[task.id] !== task.correctId) {
-            allTasksCorrect = false;
-          }
-        });
-        
-        if (allTasksCorrect) {
-          correctAnswers++;
-        }
-      } else {
-        // For single select questions
-        if (selectedAnswers[question.id] === question.correctOptionId) {
-          correctAnswers++;
-        }
-      }
+    // If there are questions without metrics (e.g., time ran out), calculate them now
+    const answeredQuestionIds = questionMetrics.map(m => m.id);
+    const unansweredQuestions = mockExamQuestions.filter(q => !answeredQuestionIds.includes(q.id));
+    
+    let updatedMetrics = [...questionMetrics];
+    
+    // Add metrics for unanswered questions (as incorrect)
+    unansweredQuestions.forEach(q => {
+      updatedMetrics.push({
+        id: q.id,
+        isCorrect: false,
+        timeTaken: 0, // We don't know how long they spent
+        text: q.text
+      });
     });
+    
+    // Count correct answers
+    correctAnswers = updatedMetrics.filter(m => m.isCorrect).length;
+    
+    // Analyze metrics by domain
+    const domainData = analyzeDomainPerformance(mockExamQuestions, updatedMetrics);
+    
+    // Calculate average times
+    const correctAnswerTimes = updatedMetrics.filter(m => m.isCorrect).map(m => m.timeTaken);
+    const incorrectAnswerTimes = updatedMetrics.filter(m => !m.isCorrect).map(m => m.timeTaken);
+    
+    const avgCorrectTime = correctAnswerTimes.length 
+      ? correctAnswerTimes.reduce((sum, time) => sum + time, 0) / correctAnswerTimes.length 
+      : 0;
+      
+    const avgIncorrectTime = incorrectAnswerTimes.length 
+      ? incorrectAnswerTimes.reduce((sum, time) => sum + time, 0) / incorrectAnswerTimes.length 
+      : 0;
+      
+    const avgAnswerTime = updatedMetrics.length 
+      ? updatedMetrics.reduce((sum, m) => sum + m.timeTaken, 0) / updatedMetrics.length 
+      : 0;
     
     // Store results in local storage for the dashboard
     const results = {
       examType,
       totalQuestions: mockExamQuestions.length,
       correctAnswers,
-      timeSpent: EXAM_TIME - totalTimeRemaining,
+      timeSpent: totalTimeTaken,
       date: new Date().toISOString(),
       percentage: Math.round((correctAnswers / mockExamQuestions.length) * 100),
-      questions: mockExamQuestions.map((q) => {
-        if (q.type === 'multiple') {
-          const selectedIds = selectedAnswers[q.id] as string[] || [];
-          const correctIds = q.correctOptionIds || [];
-          return {
-            id: q.id,
-            text: q.text,
-            correctOption: correctIds,
-            userAnswer: selectedIds,
-            isCorrect: arraysEqual(selectedIds.sort(), correctIds.sort()),
-          };
-        } else if (q.type === 'type-2') {
-          // For matching type questions
-          return {
-            id: q.id,
-            text: q.text,
-            type: 'type-2',
-            // We'll just note it was completed for now
-            isCorrect: !!selectedAnswers[q.id],
-          };
-        } else {
-          return {
-            id: q.id,
-            text: q.text,
-            correctOption: q.correctOptionId,
-            userAnswer: selectedAnswers[q.id] || null,
-            isCorrect: selectedAnswers[q.id] === q.correctOptionId,
-          };
-        }
+      avgCorrectTime,
+      avgIncorrectTime,
+      avgAnswerTime,
+      domainPerformance: domainData,
+      questions: updatedMetrics.map(metric => {
+        const q = mockExamQuestions.find(q => q.id === metric.id);
+        
+        return {
+          id: metric.id,
+          text: metric.text,
+          correctOption: q?.correctOptionId || q?.correctOptionIds || [],
+          userAnswer: selectedAnswers[metric.id] || null,
+          isCorrect: metric.isCorrect,
+          timeTaken: metric.timeTaken
+        };
       }),
     };
     
@@ -176,13 +197,39 @@ const Exam = () => {
     navigate("/dashboard");
   };
 
-  // Helper function to compare arrays
-  const arraysEqual = (a: any[], b: any[]) => {
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-      if (a[i] !== b[i]) return false;
-    }
-    return true;
+  // Helper function to analyze domain performance (mock implementation)
+  const analyzeDomainPerformance = (questions: QuestionType[], metrics: QuestionMetric[]) => {
+    // In a real app, questions would have domain/topic metadata
+    // For now, we'll create some sample domains
+    const domains = ["AWS Services", "Machine Learning", "Data Storage", "Security"];
+    
+    // Create some mock domain mapping (in a real app, this would come from the question data)
+    const domainMap: Record<string, string> = {};
+    questions.forEach((q, index) => {
+      domainMap[q.id] = domains[index % domains.length];
+    });
+    
+    // Analyze performance by domain
+    const domainPerformance: Record<string, {correct: number, incorrect: number}> = {};
+    
+    domains.forEach(domain => {
+      domainPerformance[domain] = {correct: 0, incorrect: 0};
+    });
+    
+    metrics.forEach(metric => {
+      const domain = domainMap[metric.id] || "Other";
+      if (metric.isCorrect) {
+        domainPerformance[domain].correct += 1;
+      } else {
+        domainPerformance[domain].incorrect += 1;
+      }
+    });
+    
+    return Object.entries(domainPerformance).map(([name, data]) => ({
+      name,
+      correct: data.correct,
+      incorrect: data.incorrect
+    }));
   };
 
   // If not yet started, show intro screen
@@ -215,6 +262,8 @@ const Exam = () => {
               onComplete={completeExam}
               isLastQuestion={currentQuestionIndex === mockExamQuestions.length - 1}
               onMultipleSelectSubmit={handleMultipleSelectSubmit}
+              onAnswerSubmit={handleAnswerSubmit}
+              startTime={questionStartTime}
             />
           </div>
         </div>
