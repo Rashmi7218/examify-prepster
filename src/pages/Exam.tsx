@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import ExamProgress from "@/components/ExamProgress";
 import QuestionCard, { QuestionType } from "@/components/QuestionCard";
 import MultipleSelectQuestion from "@/components/MultipleSelectQuestion";
+import MatchingQuestion from "@/components/MatchingQuestion";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { awsAIPractitionerQuestions, athenaQuestions } from "@/utils/examData";
@@ -15,8 +15,8 @@ const QUESTION_TIME = 3 * 60; // 3 minutes per question
 const Exam = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
-  const examType = searchParams.get('type') || 'ai-practitioner';
+  const { type } = useParams();
+  const examType = type || searchParams.get('type') || 'ai-practitioner';
   
   // Get questions based on the exam type from URL
   const getExamQuestions = (): QuestionType[] => {
@@ -100,6 +100,22 @@ const Exam = () => {
         if (arraysEqual(selectedIds.sort(), correctIds.sort())) {
           correctAnswers++;
         }
+      } else if (question.type === 'type-2') {
+        // For matching type questions
+        // We'll count this as a single question for now, but could be more granular
+        const tasks = question.tasks || [];
+        let allTasksCorrect = true;
+        
+        tasks.forEach(task => {
+          const questionAnswers = selectedAnswers[question.id] as Record<string, string> || {};
+          if (questionAnswers[task.id] !== task.correctId) {
+            allTasksCorrect = false;
+          }
+        });
+        
+        if (allTasksCorrect) {
+          correctAnswers++;
+        }
       } else {
         // For single select questions
         if (selectedAnswers[question.id] === question.correctOptionId) {
@@ -126,6 +142,15 @@ const Exam = () => {
             correctOption: correctIds,
             userAnswer: selectedIds,
             isCorrect: arraysEqual(selectedIds.sort(), correctIds.sort()),
+          };
+        } else if (q.type === 'type-2') {
+          // For matching type questions
+          return {
+            id: q.id,
+            text: q.text,
+            type: 'type-2',
+            // We'll just note it was completed for now
+            isCorrect: !!selectedAnswers[q.id],
           };
         } else {
           return {
@@ -227,6 +252,46 @@ const Exam = () => {
 
   const currentQuestion = mockExamQuestions[currentQuestionIndex];
 
+  const renderQuestion = () => {
+    switch (currentQuestion.type) {
+      case 'multiple':
+        return (
+          <MultipleSelectQuestion
+            questionText={currentQuestion.text}
+            options={currentQuestion.options}
+            correctOptionIds={currentQuestion.correctOptionIds || []}
+            onConfirm={handleMultipleSelectSubmit}
+          />
+        );
+      
+      case 'type-2':
+        return (
+          <MatchingQuestion
+            questionText={currentQuestion.text}
+            tasks={currentQuestion.tasks || []}
+            options={currentQuestion.options}
+            onComplete={
+              currentQuestionIndex === mockExamQuestions.length - 1 
+                ? completeExam 
+                : handleNextQuestion
+            }
+          />
+        );
+        
+      case 'type-1':
+      case 'single':
+      default:
+        return (
+          <QuestionCard
+            question={currentQuestion}
+            onNext={handleNextQuestion}
+            isLastQuestion={currentQuestionIndex === mockExamQuestions.length - 1}
+            onComplete={completeExam}
+          />
+        );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4">
@@ -240,21 +305,7 @@ const Exam = () => {
           />
           
           <div className="bg-white p-6 rounded-lg shadow-sm border">
-            {currentQuestion.type === 'multiple' ? (
-              <MultipleSelectQuestion
-                questionText={currentQuestion.text}
-                options={currentQuestion.options}
-                correctOptionIds={currentQuestion.correctOptionIds || []}
-                onConfirm={handleMultipleSelectSubmit}
-              />
-            ) : (
-              <QuestionCard
-                question={currentQuestion}
-                onNext={handleNextQuestion}
-                isLastQuestion={currentQuestionIndex === mockExamQuestions.length - 1}
-                onComplete={completeExam}
-              />
-            )}
+            {renderQuestion()}
           </div>
         </div>
       </div>

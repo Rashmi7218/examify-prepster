@@ -10,7 +10,7 @@ export type QuestionType = {
   options: { id: string; text: string }[];
   correctOptionId?: string;
   explanation: string;
-  type: "single" | "multiple" | "truefalse";
+  type: "single" | "multiple" | "truefalse" | "type-1" | "type-2";
   learnMoreLink?: { text: string; url: string };
   tasks?: { id: string; text: string; correctId: string }[];
   correctOptionIds?: string[];

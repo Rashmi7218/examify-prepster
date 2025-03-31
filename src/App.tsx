@@ -27,7 +27,6 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/exam" element={<Exam />} />
-            {/* Add a route for the exam with a type parameter */}
             <Route path="/exam/:type" element={<Exam />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="*" element={<NotFound />} />
