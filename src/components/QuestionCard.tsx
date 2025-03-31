@@ -143,7 +143,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             onClick={isLastQuestion ? handleComplete : handleNext}
             className="bg-indigo-900 hover:bg-indigo-800 text-white"
           >
-            Continue
+            {isLastQuestion ? "Complete Exam" : "Continue"}
           </Button>
         )}
       </div>

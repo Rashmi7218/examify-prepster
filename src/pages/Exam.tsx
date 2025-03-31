@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -26,7 +25,6 @@ const Exam = () => {
   const [searchParams] = useSearchParams();
   const examType = type || searchParams.get('type') || 'ai-practitioner';
   
-  // Get questions based on the exam type from URL
   const getExamQuestions = (): QuestionType[] => {
     switch(examType) {
       case 'athena':
@@ -47,7 +45,6 @@ const Exam = () => {
   const [questionStartTime, setQuestionStartTime] = useState<number>(0);
   const [questionMetrics, setQuestionMetrics] = useState<QuestionMetric[]>([]);
   
-  // Redirect if not logged in
   useEffect(() => {
     if (!user) {
       toast.error("Please login to access exams");
@@ -55,14 +52,12 @@ const Exam = () => {
     }
   }, [user, navigate]);
 
-  // Set question start time when starting the exam or moving to next question
   useEffect(() => {
     if (examStarted) {
       setQuestionStartTime(Date.now());
     }
   }, [examStarted, currentQuestionIndex]);
 
-  // Timer countdown
   useEffect(() => {
     if (!examStarted || totalTimeRemaining <= 0) return;
     
@@ -118,38 +113,31 @@ const Exam = () => {
   };
 
   const pauseExam = () => {
-    // Could implement pause functionality here
     toast.info("Exam paused");
   };
 
   const completeExam = () => {
-    // Calculate results
     let correctAnswers = 0;
     const totalTimeTaken = EXAM_TIME - totalTimeRemaining;
     
-    // If there are questions without metrics (e.g., time ran out), calculate them now
     const answeredQuestionIds = questionMetrics.map(m => m.id);
     const unansweredQuestions = mockExamQuestions.filter(q => !answeredQuestionIds.includes(q.id));
     
     let updatedMetrics = [...questionMetrics];
     
-    // Add metrics for unanswered questions (as incorrect)
     unansweredQuestions.forEach(q => {
       updatedMetrics.push({
         id: q.id,
         isCorrect: false,
-        timeTaken: 0, // We don't know how long they spent
+        timeTaken: 0,
         text: q.text
       });
     });
     
-    // Count correct answers
     correctAnswers = updatedMetrics.filter(m => m.isCorrect).length;
     
-    // Analyze metrics by domain
     const domainData = analyzeDomainPerformance(mockExamQuestions, updatedMetrics);
     
-    // Calculate average times
     const correctAnswerTimes = updatedMetrics.filter(m => m.isCorrect).map(m => m.timeTaken);
     const incorrectAnswerTimes = updatedMetrics.filter(m => !m.isCorrect).map(m => m.timeTaken);
     
@@ -165,7 +153,6 @@ const Exam = () => {
       ? updatedMetrics.reduce((sum, m) => sum + m.timeTaken, 0) / updatedMetrics.length 
       : 0;
     
-    // Store results in local storage for the dashboard
     const results = {
       examType,
       totalQuestions: mockExamQuestions.length,
@@ -193,23 +180,17 @@ const Exam = () => {
     
     localStorage.setItem("examify-results", JSON.stringify(results));
     
-    // Navigate to results dashboard
     navigate("/dashboard");
   };
 
-  // Helper function to analyze domain performance (mock implementation)
   const analyzeDomainPerformance = (questions: QuestionType[], metrics: QuestionMetric[]) => {
-    // In a real app, questions would have domain/topic metadata
-    // For now, we'll create some sample domains
     const domains = ["AWS Services", "Machine Learning", "Data Storage", "Security"];
     
-    // Create some mock domain mapping (in a real app, this would come from the question data)
     const domainMap: Record<string, string> = {};
     questions.forEach((q, index) => {
       domainMap[q.id] = domains[index % domains.length];
     });
     
-    // Analyze performance by domain
     const domainPerformance: Record<string, {correct: number, incorrect: number}> = {};
     
     domains.forEach(domain => {
@@ -232,7 +213,6 @@ const Exam = () => {
     }));
   };
 
-  // If not yet started, show intro screen
   if (!examStarted) {
     return <ExamIntro 
       examType={examType} 
