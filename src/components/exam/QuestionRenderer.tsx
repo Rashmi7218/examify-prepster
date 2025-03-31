@@ -28,11 +28,8 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     const timeTaken = Math.floor((endTime - startTime) / 1000); // Time in seconds
     onAnswerSubmit(question.id, isCorrect, timeTaken);
     
-    if (isLastQuestion) {
-      onComplete();
-    } else {
-      onNext();
-    }
+    // We don't automatically navigate to the next question here
+    // The navigation is handled by the QuestionCard component's continue button
   };
 
   const handleMultipleSelectSubmit = (selectedIds: string[]) => {
@@ -45,6 +42,8 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     const endTime = Date.now();
     const timeTaken = Math.floor((endTime - startTime) / 1000); // Time in seconds
     onAnswerSubmit(question.id, isCorrect, timeTaken);
+    
+    // Don't automatically navigate to the next question
   };
 
   // Helper function to compare arrays
@@ -73,7 +72,11 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           questionText={question.text}
           tasks={question.tasks || []}
           options={question.options}
-          onComplete={() => handleQuestionComplete(true)} // For now, we'll assume matching questions are always correct
+          onComplete={() => {
+            handleQuestionComplete(true);
+            // For matching questions, we don't immediately move to next question
+            // This will be handled by the continue button in the Exam component
+          }}
         />
       );
       
@@ -83,10 +86,10 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       return (
         <QuestionCard
           question={question}
-          onNext={() => handleQuestionComplete(true)}
+          onNext={onNext}
           isLastQuestion={isLastQuestion}
-          onComplete={() => handleQuestionComplete(true)}
-          onAnswerSelected={(isCorrect) => handleQuestionComplete(isCorrect)}
+          onComplete={onComplete}
+          onAnswerSelected={handleQuestionComplete}
         />
       );
   }
