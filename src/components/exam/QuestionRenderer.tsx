@@ -2,7 +2,7 @@
 import React from "react";
 import QuestionCard, { QuestionType } from "@/components/QuestionCard";
 import MultipleSelectQuestion from "@/components/MultipleSelectQuestion";
-import MatchingQuestion from "@/components/MatchingQuestion";
+import MatchingQuestionWrapper from "@/components/MatchingQuestionWrapper";
 
 type QuestionRendererProps = {
   question: QuestionType;
@@ -68,15 +68,16 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     
     case 'type-2':
       return (
-        <MatchingQuestion
+        <MatchingQuestionWrapper
           questionText={question.text}
           tasks={question.tasks || []}
           options={question.options}
           onComplete={() => {
             handleQuestionComplete(true);
-            // For matching questions, we don't immediately move to next question
-            // This will be handled by the continue button in the Exam component
           }}
+          isLastQuestion={isLastQuestion}
+          onNextQuestion={onNext}
+          onCompleteExam={onComplete}
         />
       );
       
