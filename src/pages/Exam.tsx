@@ -180,7 +180,7 @@ const Exam = () => {
     
     localStorage.setItem("examify-results", JSON.stringify(results));
     
-    navigate("/dashboard");
+    navigate("/results");
   };
 
   const analyzeDomainPerformance = (questions: QuestionType[], metrics: QuestionMetric[]) => {
