@@ -222,6 +222,7 @@ const Exam = () => {
   }
 
   const currentQuestion = mockExamQuestions[currentQuestionIndex];
+  const isLastQuestion = currentQuestionIndex === mockExamQuestions.length - 1;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -240,7 +241,7 @@ const Exam = () => {
               question={currentQuestion}
               onNext={handleNextQuestion}
               onComplete={completeExam}
-              isLastQuestion={currentQuestionIndex === mockExamQuestions.length - 1}
+              isLastQuestion={isLastQuestion}
               onMultipleSelectSubmit={handleMultipleSelectSubmit}
               onAnswerSubmit={handleAnswerSubmit}
               startTime={questionStartTime}
