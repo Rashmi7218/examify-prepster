@@ -4,12 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
-import { CheckCircle, XCircle, Clock, ArrowLeft, ArrowRight } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
+import { CheckCircle, XCircle, Clock, ArrowLeft } from "lucide-react";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from "@/components/ui/table";
 
 type ExamResult = {
+  examType?: string;
   totalQuestions: number;
   correctAnswers: number;
   timeSpent: number;
@@ -56,6 +57,10 @@ const Dashboard = () => {
     navigate("/exam");
   };
 
+  const handleViewResults = () => {
+    navigate("/results");
+  };
+
   if (!results) {
     return (
       <div className="min-h-screen bg-gray-50 py-12">
@@ -64,7 +69,7 @@ const Dashboard = () => {
           <Card>
             <CardContent className="pt-6">
               <p className="mb-6">You haven't completed any exams yet.</p>
-              <Button onClick={handleTakeNewExam} className="bg-examify-blue hover:bg-blue-600">
+              <Button onClick={handleTakeNewExam} className="bg-indigo-800 hover:bg-indigo-700">
                 Take an Exam
               </Button>
             </CardContent>
@@ -83,10 +88,21 @@ const Dashboard = () => {
 
   // Data for pie chart
   const pieData = [
-    { name: "Correct", value: results.correctAnswers },
-    { name: "Incorrect", value: results.totalQuestions - results.correctAnswers },
+    { name: "Correct", value: results.correctAnswers, color: "#4caf50" },
+    { name: "Incorrect", value: results.totalQuestions - results.correctAnswers, color: "#f44336" }
   ];
-  const COLORS = ["#4caf50", "#f44336"];
+
+  // Custom tooltip for pie chart
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white px-3 py-2 border rounded shadow text-sm">
+          <p>{`${payload[0].name}: ${payload[0].value} questions (${Math.round((payload[0].value / results.totalQuestions) * 100)}%)`}</p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   // Calculate pagination for question review
   const indexOfLastQuestion = currentPage * questionsPerPage;
@@ -111,7 +127,11 @@ const Dashboard = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          <h1 className="text-xl font-medium flex-1">AWS Certified AI Practitioner Official Practice Question Set (AIF-C01 - English)</h1>
+          <h1 className="text-xl font-medium flex-1">
+            {results.examType === 'athena' 
+              ? 'Amazon Athena' 
+              : 'AWS Certified AI Practitioner Official Practice Question Set (AIF-C01 - English)'}
+          </h1>
           <Button 
             variant="outline" 
             className="text-red-500 border-red-500 hover:bg-red-50"
@@ -133,40 +153,80 @@ const Dashboard = () => {
         </div>
         
         {/* Stats Grid */}
-        <div className="grid grid-cols-5 gap-6 mb-8">
-          <div className="bg-white p-4 rounded-md shadow-sm">
-            <div className="text-5xl font-bold text-center mb-2">{results.percentage}%</div>
-            <div className="text-center">Correct</div>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="col-span-1 md:col-span-1">
+            <CardContent className="pt-6">
+              <div className="flex flex-col items-center">
+                <div className="text-5xl font-bold text-center mb-4">{results.percentage}%</div>
+                <div className="text-center mb-2">Correct</div>
+                
+                {/* Pie Chart */}
+                <div className="w-full h-[180px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={70}
+                        innerRadius={35}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {pieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip content={<CustomTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                {/* Legend */}
+                <div className="flex justify-center gap-6 mt-2">
+                  {pieData.map((entry, index) => (
+                    <div key={`legend-${index}`} className="flex items-center">
+                      <div 
+                        className="w-3 h-3 rounded-sm mr-2" 
+                        style={{ backgroundColor: entry.color }}
+                      />
+                      <span>{entry.name} ({entry.value})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
           
-          <div className="bg-white p-4 rounded-md shadow-sm">
-            <div className="text-lg font-bold text-center mb-2">{results.totalQuestions} of {results.totalQuestions}</div>
-            <div className="text-center">Questions Taken</div>
-          </div>
-          
-          <div className="bg-white p-4 rounded-md shadow-sm">
-            <div className="text-lg font-bold text-center mb-2">{formatTime(Math.round(results.avgAnswerTime))}</div>
-            <div className="text-center">Avg. Answer Time</div>
-          </div>
-          
-          <div className="bg-white p-4 rounded-md shadow-sm">
-            <div className="text-lg font-bold text-center mb-2">{formatTime(Math.round(results.avgCorrectTime))}</div>
-            <div className="text-center">Avg. Correct Answer Time</div>
-          </div>
-          
-          <div className="bg-white p-4 rounded-md shadow-sm">
-            <div className="text-lg font-bold text-center mb-2">{formatTime(Math.round(results.avgIncorrectTime))}</div>
-            <div className="text-center">Avg. Incorrect Answer Time</div>
-          </div>
-          
-          <div className="bg-white p-4 rounded-md shadow-sm col-span-2">
-            <div className="text-lg font-bold text-center mb-2">{formatTime(results.timeSpent)}</div>
-            <div className="text-center">Time Elapsed</div>
-          </div>
-          
-          <div className="bg-white p-4 rounded-md shadow-sm col-span-3">
-            <div className="text-lg font-bold text-center mb-2">{new Date(results.date).toLocaleDateString()}</div>
-            <div className="text-center">Attempt Date</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 col-span-1 md:col-span-2">
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-lg font-bold text-center mb-2">{results.totalQuestions} of {results.totalQuestions}</div>
+                <div className="text-center">Questions Taken</div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-lg font-bold text-center mb-2">{formatTime(results.timeSpent)}</div>
+                <div className="text-center">Time Elapsed</div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-lg font-bold text-center mb-2">{formatTime(Math.round(results.avgAnswerTime))}</div>
+                <div className="text-center">Avg. Answer Time</div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-lg font-bold text-center mb-2">{new Date(results.date).toLocaleDateString()}</div>
+                <div className="text-center">Attempt Date</div>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
@@ -276,8 +336,18 @@ const Dashboard = () => {
           </div>
         </div>
         
-        <div className="mb-8 flex justify-center">
-          <Button onClick={handleTakeNewExam} className="bg-indigo-800 hover:bg-indigo-700">
+        <div className="mb-8 flex justify-center gap-4">
+          <Button 
+            onClick={handleViewResults} 
+            variant="outline"
+            className="border-indigo-800 text-indigo-800 hover:bg-indigo-50"
+          >
+            View Detailed Results
+          </Button>
+          <Button 
+            onClick={handleTakeNewExam} 
+            className="bg-indigo-800 hover:bg-indigo-700"
+          >
             Take Another Exam
           </Button>
         </div>

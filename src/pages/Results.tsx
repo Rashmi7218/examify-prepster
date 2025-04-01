@@ -8,6 +8,7 @@ import { CheckCircle, XCircle, ArrowLeft } from "lucide-react";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
 
 type ExamResult = {
   examType: string;
@@ -106,6 +107,24 @@ const Results = () => {
     }
   };
 
+  // Data for pie chart
+  const pieData = [
+    { name: "Correct", value: results.correctAnswers, color: "#4caf50" },
+    { name: "Incorrect", value: results.totalQuestions - results.correctAnswers, color: "#f44336" }
+  ];
+
+  // Custom tooltip for pie chart
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white px-3 py-2 border rounded shadow text-sm">
+          <p>{`${payload[0].name}: ${payload[0].value} questions (${Math.round((payload[0].value / results.totalQuestions) * 100)}%)`}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="container mx-auto px-4">
@@ -143,8 +162,46 @@ const Results = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           <Card className="col-span-1 md:col-span-2 lg:col-span-1">
             <CardContent className="p-6">
-              <div className="text-6xl font-bold text-center">{results.percentage}%</div>
-              <div className="text-center mt-2">Correct</div>
+              <div className="flex flex-col items-center">
+                <div className="text-6xl font-bold text-center mb-4">{results.percentage}%</div>
+                <div className="text-center mb-2">Correct</div>
+                
+                {/* Pie Chart */}
+                <div className="w-full h-[200px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={80}
+                        innerRadius={40}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {pieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip content={<CustomTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                {/* Legend */}
+                <div className="flex justify-center gap-6 mt-2">
+                  {pieData.map((entry, index) => (
+                    <div key={`legend-${index}`} className="flex items-center">
+                      <div 
+                        className="w-3 h-3 rounded-sm mr-2" 
+                        style={{ backgroundColor: entry.color }}
+                      />
+                      <span>{entry.name} ({entry.value})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </CardContent>
           </Card>
           
