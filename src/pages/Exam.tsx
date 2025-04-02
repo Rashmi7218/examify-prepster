@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
+import { Clock, Pause, Play } from "lucide-react"; // Added Play import
+import { Button } from "@/components/ui/button"; // Added Button import
 import { QuestionType } from "@/components/QuestionCard";
 import { awsAIPractitionerQuestions, athenaQuestions } from "@/utils/examData";
 import ExamProgress from "@/components/exam/ExamProgress";
