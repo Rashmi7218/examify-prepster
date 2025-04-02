@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -44,6 +45,7 @@ const Exam = () => {
   const [examStarted, setExamStarted] = useState(false);
   const [questionStartTime, setQuestionStartTime] = useState<number>(0);
   const [questionMetrics, setQuestionMetrics] = useState<QuestionMetric[]>([]);
+  const [isPaused, setIsPaused] = useState(false);
   
   useEffect(() => {
     if (!user) {
@@ -59,7 +61,7 @@ const Exam = () => {
   }, [examStarted, currentQuestionIndex]);
 
   useEffect(() => {
-    if (!examStarted || totalTimeRemaining <= 0) return;
+    if (!examStarted || totalTimeRemaining <= 0 || isPaused) return;
     
     const timer = setInterval(() => {
       setTimeRemaining((prev) => Math.max(0, prev - 1));
@@ -74,7 +76,7 @@ const Exam = () => {
     }, 1000);
     
     return () => clearInterval(timer);
-  }, [examStarted, totalTimeRemaining]);
+  }, [examStarted, totalTimeRemaining, isPaused]);
 
   const startExam = () => {
     setExamStarted(true);
@@ -112,8 +114,14 @@ const Exam = () => {
     }
   };
 
-  const pauseExam = () => {
-    toast.info("Exam paused");
+  const togglePauseExam = () => {
+    setIsPaused(prev => !prev);
+    
+    if (isPaused) {
+      toast.info("Exam resumed");
+    } else {
+      toast.info("Exam paused");
+    }
   };
 
   const completeExam = () => {
@@ -233,19 +241,33 @@ const Exam = () => {
             totalQuestions={mockExamQuestions.length}
             timeRemaining={timeRemaining}
             totalTime={totalTimeRemaining}
-            pauseExam={pauseExam}
+            pauseExam={togglePauseExam}
+            isPaused={isPaused}
           />
           
           <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <QuestionRenderer
-              question={currentQuestion}
-              onNext={handleNextQuestion}
-              onComplete={completeExam}
-              isLastQuestion={isLastQuestion}
-              onMultipleSelectSubmit={handleMultipleSelectSubmit}
-              onAnswerSubmit={handleAnswerSubmit}
-              startTime={questionStartTime}
-            />
+            {isPaused ? (
+              <div className="py-20 text-center">
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">Exam Paused</h2>
+                <p className="text-gray-600 mb-6">Click the Resume button to continue your exam.</p>
+                <Button 
+                  onClick={togglePauseExam}
+                  className="bg-indigo-900 hover:bg-indigo-800 text-white"
+                >
+                  <Play className="mr-2" size={16} /> Resume Exam
+                </Button>
+              </div>
+            ) : (
+              <QuestionRenderer
+                question={currentQuestion}
+                onNext={handleNextQuestion}
+                onComplete={completeExam}
+                isLastQuestion={isLastQuestion}
+                onMultipleSelectSubmit={handleMultipleSelectSubmit}
+                onAnswerSubmit={handleAnswerSubmit}
+                startTime={questionStartTime}
+              />
+            )}
           </div>
         </div>
       </div>

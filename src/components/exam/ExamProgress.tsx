@@ -1,6 +1,7 @@
 
 import React from "react";
-import { Clock } from "lucide-react";
+import { Clock, Pause, Play } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type ExamProgressProps = {
   currentQuestion: number;
@@ -9,6 +10,7 @@ type ExamProgressProps = {
   totalTime: number;
   editQuestion?: () => void;
   pauseExam?: () => void;
+  isPaused?: boolean;
 };
 
 const ExamProgress: React.FC<ExamProgressProps> = ({
@@ -18,6 +20,7 @@ const ExamProgress: React.FC<ExamProgressProps> = ({
   totalTime,
   editQuestion,
   pauseExam,
+  isPaused = false,
 }) => {
   // Format time remaining as MM:SS
   const formatTime = (seconds: number) => {
@@ -48,12 +51,22 @@ const ExamProgress: React.FC<ExamProgressProps> = ({
             </div>
           </div>
           {pauseExam && (
-            <button 
+            <Button 
               onClick={pauseExam}
-              className="px-3 py-1 border border-gray-300 hover:bg-gray-50 rounded text-sm"
+              variant="outline"
+              className="flex items-center gap-1 px-3 py-1"
+              size="sm"
             >
-              Pause Exam
-            </button>
+              {isPaused ? (
+                <>
+                  <Play size={14} /> Resume Exam
+                </>
+              ) : (
+                <>
+                  <Pause size={14} /> Pause Exam
+                </>
+              )}
+            </Button>
           )}
         </div>
       </div>
