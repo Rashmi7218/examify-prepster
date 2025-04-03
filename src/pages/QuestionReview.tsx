@@ -31,6 +31,7 @@ const QuestionReview = () => {
   const [questionIndex, setQuestionIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState<string | string[] | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean>(false);
+  const [isLastQuestion, setIsLastQuestion] = useState<boolean>(false);
 
   useEffect(() => {
     if (!user) {
@@ -53,6 +54,9 @@ const QuestionReview = () => {
       return;
     }
     setQuestionIndex(questionIndex);
+    
+    // Set last question flag
+    setIsLastQuestion(questionIndex === parsedResults.questions.length - 1);
     
     const foundQuestionResult = parsedResults.questions.find(q => q.id === questionId);
     if (foundQuestionResult) {
@@ -110,7 +114,7 @@ const QuestionReview = () => {
             question={question}
             onNext={dummyFunction}
             onComplete={dummyFunction}
-            isLastQuestion={false}
+            isLastQuestion={isLastQuestion} // Pass the last question flag
             onMultipleSelectSubmit={dummyFunction}
             onAnswerSubmit={dummyFunction}
             startTime={0}
@@ -135,3 +139,4 @@ const QuestionReview = () => {
 };
 
 export default QuestionReview;
+
