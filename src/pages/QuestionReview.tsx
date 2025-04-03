@@ -30,6 +30,7 @@ const QuestionReview = () => {
   const [question, setQuestion] = useState<QuestionType | null>(null);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState<string | string[] | null>(null);
+  const [isCorrect, setIsCorrect] = useState<boolean>(false);
 
   useEffect(() => {
     if (!user) {
@@ -54,7 +55,10 @@ const QuestionReview = () => {
     setQuestionIndex(questionIndex);
     
     const foundQuestionResult = parsedResults.questions.find(q => q.id === questionId);
-    setUserAnswer(foundQuestionResult?.userAnswer || null);
+    if (foundQuestionResult) {
+      setUserAnswer(foundQuestionResult.userAnswer || null);
+      setIsCorrect(foundQuestionResult.isCorrect);
+    }
     
     const allQuestions = parsedResults.examType === 'athena' 
       ? athenaQuestions 
@@ -112,6 +116,8 @@ const QuestionReview = () => {
             startTime={0}
             isReviewMode={true}
             preSelectedAnswer={userAnswer}
+            forceShowExplanation={true}
+            isCorrectOverride={isCorrect}
           />
           
           <div className="mt-8 flex justify-between">

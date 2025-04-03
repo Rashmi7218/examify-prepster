@@ -14,6 +14,8 @@ type QuestionRendererProps = {
   startTime: number;
   isReviewMode?: boolean;
   preSelectedAnswer?: string | string[] | null;
+  forceShowExplanation?: boolean;
+  isCorrectOverride?: boolean;
 };
 
 const QuestionRenderer: React.FC<QuestionRendererProps> = ({
@@ -25,7 +27,9 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   onAnswerSubmit,
   startTime,
   isReviewMode = false,
-  preSelectedAnswer = null
+  preSelectedAnswer = null,
+  forceShowExplanation = false,
+  isCorrectOverride
 }) => {
   const handleQuestionComplete = (isCorrect: boolean) => {
     const endTime = Date.now();
@@ -69,6 +73,10 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           onConfirm={handleMultipleSelectSubmit}
           isReviewMode={isReviewMode}
           preSelectedIds={preSelectedAnswer as string[] || []}
+          forceShowExplanation={forceShowExplanation}
+          isCorrectOverride={isCorrectOverride}
+          explanation={question.explanation}
+          learnMoreLink={question.learnMoreLink}
         />
       );
     
@@ -85,6 +93,10 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           onNextQuestion={onNext}
           onCompleteExam={onComplete}
           isReviewMode={isReviewMode}
+          forceShowExplanation={forceShowExplanation}
+          isCorrectOverride={isCorrectOverride}
+          explanation={question.explanation}
+          learnMoreLink={question.learnMoreLink}
         />
       );
       
@@ -100,6 +112,8 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           onAnswerSelected={handleQuestionComplete}
           isReviewMode={isReviewMode}
           preSelectedOptionId={preSelectedAnswer as string || null}
+          forceShowExplanation={forceShowExplanation}
+          isCorrectOverride={isCorrectOverride}
         />
       );
   }

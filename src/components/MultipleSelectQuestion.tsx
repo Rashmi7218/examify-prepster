@@ -2,17 +2,21 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import AnswerExplanation from "./AnswerExplanation";
 import { CheckCircle, XCircle } from "lucide-react";
+import AnswerExplanation from "./AnswerExplanation";
 
-interface MultipleSelectQuestionProps {
+type MultipleSelectQuestionProps = {
   questionText: string;
   options: { id: string; text: string }[];
   correctOptionIds: string[];
   onConfirm: (selectedIds: string[]) => void;
   isReviewMode?: boolean;
   preSelectedIds?: string[];
-}
+  forceShowExplanation?: boolean;
+  isCorrectOverride?: boolean;
+  explanation?: string;
+  learnMoreLink?: { text: string; url: string };
+};
 
 const MultipleSelectQuestion: React.FC<MultipleSelectQuestionProps> = ({
   questionText,
@@ -20,109 +24,130 @@ const MultipleSelectQuestion: React.FC<MultipleSelectQuestionProps> = ({
   correctOptionIds,
   onConfirm,
   isReviewMode = false,
-  preSelectedIds = []
+  preSelectedIds = [],
+  forceShowExplanation = false,
+  isCorrectOverride,
+  explanation = "",
+  learnMoreLink
 }) => {
-  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showExplanation, setShowExplanation] = useState(false);
 
+  // Initialize with preselected IDs if in review mode
   useEffect(() => {
-    if (isReviewMode && preSelectedIds.length > 0) {
-      setSelectedOptions(preSelectedIds);
+    if (isReviewMode && preSelectedIds && preSelectedIds.length > 0) {
+      setSelectedIds(preSelectedIds);
+      setIsSubmitted(true);
+      setShowExplanation(true);
+    }
+    
+    // Force explanation to show if needed
+    if (forceShowExplanation) {
+      setShowExplanation(true);
       setIsSubmitted(true);
     }
-  }, [isReviewMode, preSelectedIds]);
+  }, [isReviewMode, preSelectedIds, forceShowExplanation]);
 
-  const handleOptionToggle = (optionId: string) => {
+  const toggleOption = (id: string) => {
     if (isSubmitted) return;
     
-    setSelectedOptions((prev) => {
-      if (prev.includes(optionId)) {
-        return prev.filter((id) => id !== optionId);
+    setSelectedIds(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(itemId => itemId !== id);
       } else {
-        return [...prev, optionId];
+        return [...prev, id];
       }
     });
   };
 
-  const handleConfirm = () => {
+  const handleSubmit = () => {
     setIsSubmitted(true);
-    onConfirm(selectedOptions);
+    setShowExplanation(true);
+    onConfirm(selectedIds);
   };
 
-  const isOptionCorrect = (optionId: string) => correctOptionIds.includes(optionId);
-  
-  const isAnswerCorrect = () => {
-    if (selectedOptions.length !== correctOptionIds.length) return false;
-    
-    for (const id of selectedOptions) {
-      if (!correctOptionIds.includes(id)) return false;
+  // Check if the answer is correct
+  const isCorrect = isCorrectOverride !== undefined 
+    ? isCorrectOverride 
+    : arraysEqual(selectedIds.sort(), correctOptionIds.sort());
+
+  // Helper function to compare arrays
+  const arraysEqual = (a: string[], b: string[]) => {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) return false;
     }
-    
     return true;
+  };
+
+  const renderOption = (option: { id: string; text: string }, index: number) => {
+    const isSelected = selectedIds.includes(option.id);
+    const isCorrectOption = correctOptionIds.includes(option.id);
+    const showCorrectIndicator = isSubmitted && isCorrectOption;
+    const showIncorrectIndicator = isSubmitted && isSelected && !isCorrectOption;
+
+    return (
+      <div 
+        key={option.id} 
+        className={`
+          flex items-start p-4 border rounded-md mb-3 cursor-pointer
+          ${isSelected ? "bg-blue-50 border-blue-300" : "border-gray-200"}
+          ${showCorrectIndicator ? "bg-green-50 border-green-300" : ""}
+          ${showIncorrectIndicator ? "bg-red-50 border-red-300" : ""}
+        `}
+        onClick={() => toggleOption(option.id)}
+      >
+        <Checkbox 
+          id={`option-${option.id}`}
+          checked={isSelected}
+          onCheckedChange={() => toggleOption(option.id)}
+          disabled={isSubmitted}
+          className="mt-1 mr-3"
+        />
+        <div className="flex-1">
+          <label 
+            htmlFor={`option-${option.id}`}
+            className="text-base cursor-pointer"
+          >
+            {option.text}
+          </label>
+        </div>
+        {showCorrectIndicator && (
+          <CheckCircle className="text-green-500 ml-2 flex-shrink-0" size={20} />
+        )}
+        {showIncorrectIndicator && (
+          <XCircle className="text-red-500 ml-2 flex-shrink-0" size={20} />
+        )}
+      </div>
+    );
   };
 
   return (
     <div className="multiple-select-question">
-      <div className="mb-4">
-        <h3 className="text-xl font-medium mb-2">{questionText}</h3>
-        <p className="text-gray-500 text-sm mb-6">Select all that apply.</p>
+      <h3 className="text-xl font-medium mb-6">{questionText}</h3>
+      
+      <div className="text-sm text-gray-500 mb-4">
+        Select all that apply. Choose at least one option.
       </div>
       
-      <div className="space-y-4 mb-6">
-        {options.map((option, index) => {
-          const isSelected = selectedOptions.includes(option.id);
-          const isCorrect = isOptionCorrect(option.id);
-          const showCorrectIndicator = isSubmitted && isCorrect;
-          const showIncorrectIndicator = isSubmitted && isSelected && !isCorrect;
-          
-          return (
-            <div
-              key={option.id}
-              className={`
-                p-4 border rounded-md flex items-center cursor-pointer transition-all
-                ${isSelected ? "border-examify-blue" : "border-gray-200"}
-                ${showCorrectIndicator ? "bg-green-50 border-green-500" : ""}
-                ${showIncorrectIndicator ? "bg-red-50 border-red-500" : ""}
-              `}
-              onClick={() => handleOptionToggle(option.id)}
-            >
-              <Checkbox
-                id={`option-${option.id}`}
-                checked={isSelected}
-                className="mr-3"
-                disabled={isSubmitted}
-              />
-              <label
-                htmlFor={`option-${option.id}`}
-                className="flex-1 cursor-pointer"
-              >
-                {option.text}
-              </label>
-              {showCorrectIndicator && (
-                <CheckCircle className="text-green-500 ml-2" size={20} />
-              )}
-              {showIncorrectIndicator && (
-                <XCircle className="text-red-500 ml-2" size={20} />
-              )}
-            </div>
-          );
-        })}
+      <div className="space-y-2 mb-6">
+        {options.map((option, index) => renderOption(option, index))}
       </div>
-      
-      {isSubmitted && (
+
+      {(showExplanation || forceShowExplanation) && explanation && (
         <AnswerExplanation
-          isCorrect={isAnswerCorrect()}
-          explanation={`The correct answers are: ${correctOptionIds.map(
-            (id) => options.find((opt) => opt.id === id)?.text
-          ).join(", ")}`}
+          isCorrect={isCorrect}
+          explanation={explanation}
+          learnMoreLink={learnMoreLink}
         />
       )}
-      
+
       {!isSubmitted && !isReviewMode && (
         <div className="mt-8 flex justify-end">
-          <Button
-            onClick={handleConfirm}
-            disabled={selectedOptions.length === 0}
+          <Button 
+            onClick={handleSubmit} 
+            disabled={selectedIds.length === 0}
             className="bg-indigo-900 hover:bg-indigo-800 text-white"
           >
             Confirm

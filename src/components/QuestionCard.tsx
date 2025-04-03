@@ -24,6 +24,8 @@ type QuestionCardProps = {
   onAnswerSelected?: (isCorrect: boolean) => void;
   isReviewMode?: boolean;
   preSelectedOptionId?: string | null;
+  forceShowExplanation?: boolean;
+  isCorrectOverride?: boolean;
 };
 
 const QuestionCard: React.FC<QuestionCardProps> = ({
@@ -33,7 +35,9 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   onComplete,
   onAnswerSelected,
   isReviewMode = false,
-  preSelectedOptionId = null
+  preSelectedOptionId = null,
+  forceShowExplanation = false,
+  isCorrectOverride
 }) => {
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
@@ -46,7 +50,13 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       setIsAnswered(true);
       setShowExplanation(true);
     }
-  }, [isReviewMode, preSelectedOptionId]);
+    
+    // Force showing explanation in review mode
+    if (forceShowExplanation) {
+      setShowExplanation(true);
+      setIsAnswered(true);
+    }
+  }, [isReviewMode, preSelectedOptionId, forceShowExplanation]);
 
   const handleOptionSelect = (optionId: string) => {
     if (!isAnswered) {
@@ -83,9 +93,11 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   };
 
   // For single and truefalse types, use correctOptionId
-  const isCorrect = question.type === "multiple" 
-    ? question.correctOptionIds?.includes(selectedOptionId || "") 
-    : selectedOptionId === question.correctOptionId;
+  const isCorrect = isCorrectOverride !== undefined 
+    ? isCorrectOverride
+    : question.type === "multiple" 
+      ? question.correctOptionIds?.includes(selectedOptionId || "") 
+      : selectedOptionId === question.correctOptionId;
 
   const renderOption = (option: { id: string; text: string }, letter: string) => {
     const isSelected = selectedOptionId === option.id;
@@ -134,7 +146,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
         )}
       </div>
 
-      {showExplanation && selectedOptionId && (
+      {(showExplanation || forceShowExplanation) && (
         <AnswerExplanation
           isCorrect={isCorrect}
           explanation={question.explanation}
