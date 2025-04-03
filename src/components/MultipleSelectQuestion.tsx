@@ -1,36 +1,43 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { XCircle, CheckCircle } from "lucide-react";
+import AnswerExplanation from "./AnswerExplanation";
+import { CheckCircle, XCircle } from "lucide-react";
 
-export type MultipleSelectOptionType = {
-  id: string;
-  text: string;
-};
-
-type MultipleSelectQuestionProps = {
+interface MultipleSelectQuestionProps {
   questionText: string;
-  options: MultipleSelectOptionType[];
+  options: { id: string; text: string }[];
   correctOptionIds: string[];
   onConfirm: (selectedIds: string[]) => void;
-};
+  isReviewMode?: boolean;
+  preSelectedIds?: string[];
+}
 
 const MultipleSelectQuestion: React.FC<MultipleSelectQuestionProps> = ({
   questionText,
   options,
   correctOptionIds,
   onConfirm,
+  isReviewMode = false,
+  preSelectedIds = []
 }) => {
-  const [selectedOptionIds, setSelectedOptionIds] = useState<string[]>([]);
-  const [answered, setAnswered] = useState(false);
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (isReviewMode && preSelectedIds.length > 0) {
+      setSelectedOptions(preSelectedIds);
+      setIsSubmitted(true);
+    }
+  }, [isReviewMode, preSelectedIds]);
 
   const handleOptionToggle = (optionId: string) => {
-    if (answered) return;
-
-    setSelectedOptionIds((prev) => {
+    if (isSubmitted) return;
+    
+    setSelectedOptions((prev) => {
       if (prev.includes(optionId)) {
-        return prev.filter(id => id !== optionId);
+        return prev.filter((id) => id !== optionId);
       } else {
         return [...prev, optionId];
       }
@@ -38,71 +45,90 @@ const MultipleSelectQuestion: React.FC<MultipleSelectQuestionProps> = ({
   };
 
   const handleConfirm = () => {
-    setAnswered(true);
-    onConfirm(selectedOptionIds);
+    setIsSubmitted(true);
+    onConfirm(selectedOptions);
   };
 
-  const isOptionCorrect = (optionId: string) => {
-    return correctOptionIds.includes(optionId);
-  };
-
-  const isOptionIncorrect = (optionId: string) => {
-    return answered && selectedOptionIds.includes(optionId) && !correctOptionIds.includes(optionId);
+  const isOptionCorrect = (optionId: string) => correctOptionIds.includes(optionId);
+  
+  const isAnswerCorrect = () => {
+    if (selectedOptions.length !== correctOptionIds.length) return false;
+    
+    for (const id of selectedOptions) {
+      if (!correctOptionIds.includes(id)) return false;
+    }
+    
+    return true;
   };
 
   return (
-    <div className="question-container">
-      <h3 className="text-lg font-medium mb-4">{questionText}</h3>
-      <p className="mb-4 text-gray-700">Select the correct AWS service or feature from the following list for each task. Each AWS service or feature should be selected one or more times. (Select FIVE.)</p>
+    <div className="multiple-select-question">
+      <div className="mb-4">
+        <h3 className="text-xl font-medium mb-2">{questionText}</h3>
+        <p className="text-gray-500 text-sm mb-6">Select all that apply.</p>
+      </div>
       
-      <ul className="space-y-3">
-        {options.map((option) => (
-          <li key={option.id} className="flex items-start">
-            <div 
-              onClick={() => handleOptionToggle(option.id)}
+      <div className="space-y-4 mb-6">
+        {options.map((option, index) => {
+          const isSelected = selectedOptions.includes(option.id);
+          const isCorrect = isOptionCorrect(option.id);
+          const showCorrectIndicator = isSubmitted && isCorrect;
+          const showIncorrectIndicator = isSubmitted && isSelected && !isCorrect;
+          
+          return (
+            <div
+              key={option.id}
               className={`
-                flex items-start px-4 py-3 rounded-md border cursor-pointer select-none
-                ${selectedOptionIds.includes(option.id) ? "border-examify-blue" : "border-gray-300"}
-                ${isOptionCorrect(option.id) && answered ? "bg-green-50 border-green-500" : ""}
-                ${isOptionIncorrect(option.id) ? "bg-red-50 border-red-500" : ""}
-                ${answered ? "cursor-default" : "hover:bg-gray-50"}
+                p-4 border rounded-md flex items-center cursor-pointer transition-all
+                ${isSelected ? "border-examify-blue" : "border-gray-200"}
+                ${showCorrectIndicator ? "bg-green-50 border-green-500" : ""}
+                ${showIncorrectIndicator ? "bg-red-50 border-red-500" : ""}
               `}
+              onClick={() => handleOptionToggle(option.id)}
             >
-              <div className="flex items-center h-6 mr-3">
-                <Checkbox 
-                  id={`checkbox-${option.id}`}
-                  checked={selectedOptionIds.includes(option.id)}
-                  disabled={answered}
-                  className="border-gray-400"
-                  onCheckedChange={() => handleOptionToggle(option.id)}
-                />
-              </div>
-              <label 
-                htmlFor={`checkbox-${option.id}`}
-                className="flex-1 cursor-pointer text-base"
+              <Checkbox
+                id={`option-${option.id}`}
+                checked={isSelected}
+                className="mr-3"
+                disabled={isSubmitted}
+              />
+              <label
+                htmlFor={`option-${option.id}`}
+                className="flex-1 cursor-pointer"
               >
                 {option.text}
               </label>
-              {answered && isOptionCorrect(option.id) && (
-                <CheckCircle className="text-green-500 flex-shrink-0 ml-2" size={20} />
+              {showCorrectIndicator && (
+                <CheckCircle className="text-green-500 ml-2" size={20} />
               )}
-              {isOptionIncorrect(option.id) && (
-                <XCircle className="text-red-500 flex-shrink-0 ml-2" size={20} />
+              {showIncorrectIndicator && (
+                <XCircle className="text-red-500 ml-2" size={20} />
               )}
             </div>
-          </li>
-        ))}
-      </ul>
-
-      <div className="flex justify-end mt-6">
-        <Button 
-          onClick={handleConfirm}
-          disabled={selectedOptionIds.length === 0 || answered}
-          className="bg-indigo-900 hover:bg-indigo-800 text-white"
-        >
-          Confirm
-        </Button>
+          );
+        })}
       </div>
+      
+      {isSubmitted && (
+        <AnswerExplanation
+          isCorrect={isAnswerCorrect()}
+          explanation={`The correct answers are: ${correctOptionIds.map(
+            (id) => options.find((opt) => opt.id === id)?.text
+          ).join(", ")}`}
+        />
+      )}
+      
+      {!isSubmitted && !isReviewMode && (
+        <div className="mt-8 flex justify-end">
+          <Button
+            onClick={handleConfirm}
+            disabled={selectedOptions.length === 0}
+            className="bg-indigo-900 hover:bg-indigo-800 text-white"
+          >
+            Confirm
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import AnswerExplanation from "./AnswerExplanation";
 import { CheckCircle, XCircle } from "lucide-react";
@@ -22,6 +22,8 @@ type QuestionCardProps = {
   isLastQuestion: boolean;
   onComplete: () => void;
   onAnswerSelected?: (isCorrect: boolean) => void;
+  isReviewMode?: boolean;
+  preSelectedOptionId?: string | null;
 };
 
 const QuestionCard: React.FC<QuestionCardProps> = ({
@@ -29,11 +31,22 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   onNext,
   isLastQuestion,
   onComplete,
-  onAnswerSelected
+  onAnswerSelected,
+  isReviewMode = false,
+  preSelectedOptionId = null
 }) => {
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
   const [isAnswered, setIsAnswered] = useState(false);
+
+  useEffect(() => {
+    // If in review mode and a preselected option ID is provided, set it
+    if (isReviewMode && preSelectedOptionId) {
+      setSelectedOptionId(preSelectedOptionId);
+      setIsAnswered(true);
+      setShowExplanation(true);
+    }
+  }, [isReviewMode, preSelectedOptionId]);
 
   const handleOptionSelect = (optionId: string) => {
     if (!isAnswered) {
@@ -130,7 +143,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       )}
 
       <div className="mt-8 flex justify-end">
-        {!isAnswered ? (
+        {!isAnswered && !isReviewMode ? (
           <Button 
             onClick={handleSubmit} 
             disabled={!selectedOptionId}
@@ -138,14 +151,14 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           >
             Confirm
           </Button>
-        ) : (
+        ) : !isReviewMode ? (
           <Button 
             onClick={isLastQuestion ? handleComplete : handleNext}
             className="bg-indigo-900 hover:bg-indigo-800 text-white"
           >
             {isLastQuestion ? "Complete Exam" : "Continue"}
           </Button>
-        )}
+        ) : null}
       </div>
     </div>
   );

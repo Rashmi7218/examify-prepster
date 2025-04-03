@@ -289,7 +289,12 @@ const Results = () => {
                       {question.timeTaken ? formatTime(question.timeTaken) : 'N/A'}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" className="text-indigo-800">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-indigo-800"
+                        onClick={() => navigate(`/question-review/${question.id}`)}
+                      >
                         Review
                       </Button>
                     </TableCell>

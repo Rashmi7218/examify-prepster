@@ -12,6 +12,8 @@ type QuestionRendererProps = {
   onMultipleSelectSubmit: (selectedIds: string[]) => void;
   onAnswerSubmit: (questionId: string, isCorrect: boolean, timeTaken: number) => void;
   startTime: number;
+  isReviewMode?: boolean;
+  preSelectedAnswer?: string | string[] | null;
 };
 
 const QuestionRenderer: React.FC<QuestionRendererProps> = ({
@@ -21,7 +23,9 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   isLastQuestion,
   onMultipleSelectSubmit,
   onAnswerSubmit,
-  startTime
+  startTime,
+  isReviewMode = false,
+  preSelectedAnswer = null
 }) => {
   const handleQuestionComplete = (isCorrect: boolean) => {
     const endTime = Date.now();
@@ -63,6 +67,8 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           options={question.options}
           correctOptionIds={question.correctOptionIds || []}
           onConfirm={handleMultipleSelectSubmit}
+          isReviewMode={isReviewMode}
+          preSelectedIds={preSelectedAnswer as string[] || []}
         />
       );
     
@@ -78,6 +84,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           isLastQuestion={isLastQuestion}
           onNextQuestion={onNext}
           onCompleteExam={onComplete}
+          isReviewMode={isReviewMode}
         />
       );
       
@@ -91,6 +98,8 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           isLastQuestion={isLastQuestion}
           onComplete={onComplete}
           onAnswerSelected={handleQuestionComplete}
+          isReviewMode={isReviewMode}
+          preSelectedOptionId={preSelectedAnswer as string || null}
         />
       );
   }

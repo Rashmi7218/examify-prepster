@@ -13,6 +13,7 @@ import Exam from "./pages/Exam";
 import Dashboard from "./pages/Dashboard";
 import Results from "./pages/Results";
 import NotFound from "./pages/NotFound";
+import QuestionReview from "./pages/QuestionReview";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/exam/:type" element={<Exam />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/results" element={<Results />} />
+            <Route path="/question-review/:questionId" element={<QuestionReview />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
