@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -19,7 +20,6 @@ type QuestionResult = {
 type ExamResult = {
   examType: string;
   questions: QuestionResult[];
-  // ... other properties not needed for this component
 };
 
 const QuestionReview = () => {
@@ -29,6 +29,7 @@ const QuestionReview = () => {
   const [results, setResults] = useState<ExamResult | null>(null);
   const [question, setQuestion] = useState<QuestionType | null>(null);
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [userAnswer, setUserAnswer] = useState<string | string[] | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -36,7 +37,6 @@ const QuestionReview = () => {
       return;
     }
     
-    // Load results from local storage
     const storedResults = localStorage.getItem("examify-results");
     if (!storedResults || !questionId) {
       navigate("/results");
@@ -46,7 +46,6 @@ const QuestionReview = () => {
     const parsedResults = JSON.parse(storedResults) as ExamResult;
     setResults(parsedResults);
     
-    // Find the question index in the results
     const questionIndex = parsedResults.questions.findIndex(q => q.id === questionId);
     if (questionIndex === -1) {
       navigate("/results");
@@ -54,7 +53,9 @@ const QuestionReview = () => {
     }
     setQuestionIndex(questionIndex);
     
-    // Get the question data from the appropriate dataset
+    const foundQuestionResult = parsedResults.questions.find(q => q.id === questionId);
+    setUserAnswer(foundQuestionResult?.userAnswer || null);
+    
     const allQuestions = parsedResults.examType === 'athena' 
       ? athenaQuestions 
       : awsAIPractitionerQuestions;
@@ -78,11 +79,8 @@ const QuestionReview = () => {
     );
   }
 
-  // We'll use this dummy function as we're just reviewing, not submitting new answers
+  // Dummy functions for review mode
   const dummyFunction = () => {};
-
-  // Get the user's answer for this question from results
-  const userAnswer = results.questions.find(q => q.id === questionId)?.userAnswer || null;
 
   return (
     <div className="min-h-screen bg-gray-50">
