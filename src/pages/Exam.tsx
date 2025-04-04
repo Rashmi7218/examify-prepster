@@ -1,17 +1,18 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
-import { Clock, Pause, Play } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Clock, Pause, Play } from "lucide-react"; // Added Play import
+import { Button } from "@/components/ui/button"; // Added Button import
 import { QuestionType } from "@/components/QuestionCard";
 import { awsAIPractitionerQuestions, athenaQuestions } from "@/utils/examData";
 import ExamProgress from "@/components/exam/ExamProgress";
 import ExamIntro from "@/components/exam/ExamIntro";
 import QuestionRenderer from "@/components/exam/QuestionRenderer";
 
-const EXAM_TIME = 20 * 60; // 20 minutes in seconds (placeholder)
-const QUESTION_TIME = 3 * 60; // 3 minutes per question (placeholder)
+const EXAM_TIME = 20 * 60; // 20 minutes in seconds
+const QUESTION_TIME = 3 * 60; // 3 minutes per question
 
 type QuestionMetric = {
   id: string;
@@ -38,7 +39,6 @@ const Exam = () => {
   };
   
   const mockExamQuestions = getExamQuestions();
-  const [isLoading, setIsLoading] = useState(true);
   
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(QUESTION_TIME);
@@ -54,8 +54,6 @@ const Exam = () => {
       toast.error("Please login to access exams");
       navigate("/login");
     }
-    
-    setIsLoading(false);
   }, [user, navigate]);
 
   useEffect(() => {
@@ -83,12 +81,6 @@ const Exam = () => {
   }, [examStarted, totalTimeRemaining, isPaused]);
 
   const startExam = () => {
-    if (mockExamQuestions.length === 0) {
-      toast.error("No questions available for this exam");
-      navigate("/dashboard");
-      return;
-    }
-    
     setExamStarted(true);
     setQuestionStartTime(Date.now());
   };
@@ -231,35 +223,12 @@ const Exam = () => {
     }));
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Loading exam questions...</h1>
-          <p>Please wait while we prepare your exam.</p>
-        </div>
-      </div>
-    );
-  }
-
   if (!examStarted) {
     return <ExamIntro 
       examType={examType} 
       onStart={startExam} 
       onReturn={() => navigate("/")} 
     />;
-  }
-
-  if (mockExamQuestions.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">No questions available</h1>
-          <p className="mb-4">There are currently no questions available for this exam.</p>
-          <Button onClick={() => navigate("/dashboard")}>Return to Dashboard</Button>
-        </div>
-      </div>
-    );
   }
 
   const currentQuestion = mockExamQuestions[currentQuestionIndex];
