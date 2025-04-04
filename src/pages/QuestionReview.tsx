@@ -32,6 +32,7 @@ const QuestionReview = () => {
   const [userAnswer, setUserAnswer] = useState<string | string[] | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean>(false);
   const [isLastQuestion, setIsLastQuestion] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!user) {
@@ -64,19 +65,44 @@ const QuestionReview = () => {
       setIsCorrect(foundQuestionResult.isCorrect);
     }
     
-    const allQuestions = parsedResults.examType === 'athena' 
-      ? athenaQuestions 
-      : awsAIPractitionerQuestions;
+    // This will be replaced with a database query in the future
+    const getQuestionFromExamType = (examType: string, questionId: string): QuestionType | undefined => {
+      // In future implementation, this will fetch from the database
+      const allQuestions = examType === 'athena' 
+        ? athenaQuestions 
+        : awsAIPractitionerQuestions;
+      
+      return allQuestions.find(q => q.id === questionId);
+    };
     
-    const foundQuestion = allQuestions.find(q => q.id === questionId);
+    const foundQuestion = getQuestionFromExamType(parsedResults.examType, questionId);
+    
     if (foundQuestion) {
       setQuestion(foundQuestion);
     } else {
-      navigate("/results");
+      // If question not found in current arrays, we'll create a placeholder from the results data
+      // In the future, this will be replaced by actual database fetching
+      const questionResult = parsedResults.questions.find(q => q.id === questionId);
+      if (questionResult) {
+        // Create a minimal question structure from the stored result
+        const placeholderQuestion: QuestionType = {
+          id: questionResult.id,
+          text: questionResult.text,
+          options: [],
+          type: "single",
+          explanation: "Detailed explanation not available"
+        };
+        
+        setQuestion(placeholderQuestion);
+      } else {
+        navigate("/results");
+      }
     }
+    
+    setIsLoading(false);
   }, [user, navigate, questionId]);
 
-  if (!results || !question) {
+  if (isLoading || !results || !question) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -114,7 +140,7 @@ const QuestionReview = () => {
             question={question}
             onNext={dummyFunction}
             onComplete={dummyFunction}
-            isLastQuestion={isLastQuestion} // Pass the last question flag
+            isLastQuestion={isLastQuestion}
             onMultipleSelectSubmit={dummyFunction}
             onAnswerSubmit={dummyFunction}
             startTime={0}
@@ -139,4 +165,3 @@ const QuestionReview = () => {
 };
 
 export default QuestionReview;
-
