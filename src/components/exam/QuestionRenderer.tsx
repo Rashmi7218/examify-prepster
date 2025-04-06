@@ -13,7 +13,7 @@ type QuestionRendererProps = {
   onAnswerSubmit: (questionId: string, isCorrect: boolean, timeTaken: number) => void;
   startTime: number;
   isReviewMode?: boolean;
-  preSelectedAnswer?: string | string[] | null;
+  preSelectedAnswer?: string | string[] | Record<string, string> | null;
   forceShowExplanation?: boolean;
   isCorrectOverride?: boolean;
 };
@@ -122,7 +122,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           onComplete={onComplete}
           onAnswerSelected={handleQuestionComplete}
           isReviewMode={isReviewMode}
-          preSelectedOptionId={preSelectedAnswer as string || null}
+          preSelectedOptionId={typeof preSelectedAnswer === 'string' ? preSelectedAnswer : null}
           forceShowExplanation={forceShowExplanation}
           isCorrectOverride={isCorrectOverride}
         />

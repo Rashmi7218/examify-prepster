@@ -12,7 +12,7 @@ type QuestionResult = {
   id: string;
   text: string;
   correctOption: string | string[];
-  userAnswer: string | string[] | null;
+  userAnswer: string | string[] | Record<string, string> | null;
   isCorrect: boolean;
   timeTaken?: number;
 };

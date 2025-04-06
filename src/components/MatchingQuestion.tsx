@@ -15,6 +15,8 @@ type MatchingQuestionProps = {
   tasks: TaskItem[];
   options: { id: string; text: string }[];
   onComplete: () => void;
+  isReviewMode?: boolean;
+  userAnswers?: Record<string, string>;
 };
 
 const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
@@ -22,9 +24,13 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
   tasks,
   options,
   onComplete,
+  isReviewMode = false,
+  userAnswers = {},
 }) => {
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
-  const [submitted, setSubmitted] = useState(false);
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>(
+    isReviewMode && Object.keys(userAnswers).length > 0 ? userAnswers : {}
+  );
+  const [submitted, setSubmitted] = useState(isReviewMode);
 
   const handleSelectChange = (taskId: string, value: string) => {
     if (submitted) return;
