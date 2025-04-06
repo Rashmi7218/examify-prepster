@@ -28,6 +28,28 @@ export const convertJsonToQuestions = (jsonQuestions: any[]): QuestionType[] => 
         type: "type-2" as const,
         learnMoreLink: q.learnMoreLink
       };
+    } else if (q.type === "type-3") {
+      // For multiple choice questions with multiple correct answers
+      const options = q.options.map((opt: string, optIndex: number) => ({
+        id: optIndex.toString(),
+        text: opt
+      }));
+
+      // Find all correct option ids
+      const correctOptionIds = q.answer.map((answer: string) => {
+        const foundOption = options.find(opt => opt.text === answer);
+        return foundOption ? foundOption.id : null;
+      }).filter(Boolean);
+
+      return {
+        id: `q${index + 1}`,
+        text: q.question,
+        options,
+        correctOptionIds,
+        explanation: q.explanation,
+        type: "type-3" as const,
+        learnMoreLink: q.learnMoreLink
+      };
     } else {
       // For single-select questions (type-1 or default)
       // Create options array with id and text properties
@@ -112,9 +134,9 @@ const athenaJsonQuestions = [
       "AWS Glue Studio",
       "AWS Lake Formation"
     ],
-    "answer": "AWS Glue Data Brew",
+    "answer": ["AWS Glue Data Brew", "AWS Glue Data Catalog"],
     "explanation": "The image describes AWS Glue Data Brew as a visual data preparation tool enabling users to clean and normalize data without coding.",
-    "type": "type-1"
+    "type": "type-3"
   },
   {
     "type": "type-2",

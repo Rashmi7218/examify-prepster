@@ -65,6 +65,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
 
   switch (question.type) {
     case 'multiple':
+    case 'type-3':
       return (
         <MultipleSelectQuestion
           questionText={question.text}
