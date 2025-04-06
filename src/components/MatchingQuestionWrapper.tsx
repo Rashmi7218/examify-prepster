@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import MatchingQuestion from "./MatchingQuestion";
 import { Button } from "@/components/ui/button";
-import { QuestionType } from "./QuestionCard";
+import AnswerExplanation from "./AnswerExplanation";
 
 type MatchingQuestionWrapperProps = {
   questionText: string;
@@ -12,6 +12,11 @@ type MatchingQuestionWrapperProps = {
   isLastQuestion: boolean;
   onNextQuestion: () => void;
   onCompleteExam: () => void;
+  isReviewMode?: boolean;
+  forceShowExplanation?: boolean;
+  isCorrectOverride?: boolean;
+  explanation?: string;
+  learnMoreLink?: { text: string; url: string };
 };
 
 const MatchingQuestionWrapper: React.FC<MatchingQuestionWrapperProps> = ({
@@ -21,13 +26,20 @@ const MatchingQuestionWrapper: React.FC<MatchingQuestionWrapperProps> = ({
   onComplete,
   isLastQuestion,
   onNextQuestion,
-  onCompleteExam
+  onCompleteExam,
+  isReviewMode = false,
+  forceShowExplanation = false,
+  isCorrectOverride,
+  explanation = "",
+  learnMoreLink
 }) => {
   const [isAnswered, setIsAnswered] = useState(false);
+  const [showExplanation, setShowExplanation] = useState(forceShowExplanation);
 
   const handleComplete = () => {
     onComplete();
     setIsAnswered(true);
+    setShowExplanation(true);
   };
 
   return (
@@ -39,7 +51,17 @@ const MatchingQuestionWrapper: React.FC<MatchingQuestionWrapperProps> = ({
         onComplete={handleComplete}
       />
       
-      {isAnswered && (
+      {showExplanation && explanation && (
+        <div className="mt-6">
+          <AnswerExplanation
+            isCorrect={isCorrectOverride !== undefined ? isCorrectOverride : true}
+            explanation={explanation}
+            learnMoreLink={learnMoreLink}
+          />
+        </div>
+      )}
+      
+      {(isAnswered || isReviewMode) && (
         <div className="mt-8 flex justify-end">
           <Button 
             onClick={isLastQuestion ? onCompleteExam : onNextQuestion}
