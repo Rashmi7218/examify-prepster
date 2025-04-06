@@ -16,6 +16,9 @@ type MultipleSelectQuestionProps = {
   isCorrectOverride?: boolean;
   explanation?: string;
   learnMoreLink?: { text: string; url: string };
+  onNext?: () => void;
+  onComplete?: () => void;
+  isLastQuestion?: boolean;
 };
 
 const MultipleSelectQuestion: React.FC<MultipleSelectQuestionProps> = ({
@@ -28,7 +31,10 @@ const MultipleSelectQuestion: React.FC<MultipleSelectQuestionProps> = ({
   forceShowExplanation = false,
   isCorrectOverride,
   explanation = "",
-  learnMoreLink
+  learnMoreLink,
+  onNext,
+  onComplete,
+  isLastQuestion = false
 }) => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -65,7 +71,13 @@ const MultipleSelectQuestion: React.FC<MultipleSelectQuestionProps> = ({
       if (prev.includes(id)) {
         return prev.filter(itemId => itemId !== id);
       } else {
-        return [...prev, id];
+        // If we already have the max number of selections (equal to correct answers count),
+        // remove the first selected item
+        if (prev.length >= correctOptionIds.length) {
+          return [...prev.slice(1), id];
+        } else {
+          return [...prev, id];
+        }
       }
     });
   };
@@ -74,6 +86,14 @@ const MultipleSelectQuestion: React.FC<MultipleSelectQuestionProps> = ({
     setIsSubmitted(true);
     setShowExplanation(true);
     onConfirm(selectedIds);
+  };
+
+  const handleNext = () => {
+    if (onNext) onNext();
+  };
+
+  const handleComplete = () => {
+    if (onComplete) onComplete();
   };
 
   // Check if the answer is correct
@@ -128,7 +148,7 @@ const MultipleSelectQuestion: React.FC<MultipleSelectQuestionProps> = ({
       <h3 className="text-xl font-medium mb-6">{questionText}</h3>
       
       <div className="text-sm text-gray-500 mb-4">
-        Select all that apply. Choose at least one option.
+        Select exactly {correctOptionIds.length} option{correctOptionIds.length !== 1 ? 's' : ''}.
       </div>
       
       <div className="space-y-2 mb-6">
@@ -143,17 +163,26 @@ const MultipleSelectQuestion: React.FC<MultipleSelectQuestionProps> = ({
         />
       )}
 
-      {!isSubmitted && !isReviewMode && (
-        <div className="mt-8 flex justify-end">
+      <div className="mt-8 flex justify-end">
+        {!isSubmitted && !isReviewMode && (
           <Button 
             onClick={handleSubmit} 
-            disabled={selectedIds.length === 0}
+            disabled={selectedIds.length !== correctOptionIds.length}
             className="bg-indigo-900 hover:bg-indigo-800 text-white"
           >
             Confirm
           </Button>
-        </div>
-      )}
+        )}
+
+        {isSubmitted && !isReviewMode && onNext && (
+          <Button 
+            onClick={isLastQuestion ? handleComplete : handleNext}
+            className="bg-indigo-900 hover:bg-indigo-800 text-white"
+          >
+            {isLastQuestion ? "Complete Exam" : "Continue"}
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

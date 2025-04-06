@@ -78,6 +78,9 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           isCorrectOverride={isCorrectOverride}
           explanation={question.explanation}
           learnMoreLink={question.learnMoreLink}
+          onNext={onNext}
+          onComplete={onComplete}
+          isLastQuestion={isLastQuestion}
         />
       );
     
