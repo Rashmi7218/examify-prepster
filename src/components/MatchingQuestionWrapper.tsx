@@ -17,6 +17,7 @@ type MatchingQuestionWrapperProps = {
   isCorrectOverride?: boolean;
   explanation?: string;
   learnMoreLink?: { text: string; url: string };
+  userAnswers?: Record<string, string>; // Add userAnswers prop
 };
 
 const MatchingQuestionWrapper: React.FC<MatchingQuestionWrapperProps> = ({
@@ -31,7 +32,8 @@ const MatchingQuestionWrapper: React.FC<MatchingQuestionWrapperProps> = ({
   forceShowExplanation = false,
   isCorrectOverride,
   explanation = "",
-  learnMoreLink
+  learnMoreLink,
+  userAnswers = {} // Default to empty object
 }) => {
   const [isAnswered, setIsAnswered] = useState(false);
   const [showExplanation, setShowExplanation] = useState(forceShowExplanation);
@@ -49,6 +51,8 @@ const MatchingQuestionWrapper: React.FC<MatchingQuestionWrapperProps> = ({
         tasks={tasks}
         options={options}
         onComplete={handleComplete}
+        isReviewMode={isReviewMode}
+        userAnswers={userAnswers}
       />
       
       {showExplanation && explanation && (

@@ -63,6 +63,12 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     return true;
   };
 
+  // Process preSelectedAnswer for type-2 questions
+  let userAnswers = {};
+  if (isReviewMode && question.type === 'type-2' && preSelectedAnswer && typeof preSelectedAnswer === 'object' && !Array.isArray(preSelectedAnswer)) {
+    userAnswers = preSelectedAnswer as Record<string, string>;
+  }
+
   switch (question.type) {
     case 'multiple':
     case 'type-3':
@@ -73,7 +79,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           correctOptionIds={question.correctOptionIds || []}
           onConfirm={handleMultipleSelectSubmit}
           isReviewMode={isReviewMode}
-          preSelectedIds={preSelectedAnswer as string[] || []}
+          preSelectedIds={Array.isArray(preSelectedAnswer) ? preSelectedAnswer : []}
           forceShowExplanation={forceShowExplanation}
           isCorrectOverride={isCorrectOverride}
           explanation={question.explanation}
@@ -101,6 +107,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           isCorrectOverride={isCorrectOverride}
           explanation={question.explanation}
           learnMoreLink={question.learnMoreLink}
+          userAnswers={userAnswers}
         />
       );
       

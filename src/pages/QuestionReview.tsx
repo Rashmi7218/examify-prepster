@@ -29,7 +29,7 @@ const QuestionReview = () => {
   const [results, setResults] = useState<ExamResult | null>(null);
   const [question, setQuestion] = useState<QuestionType | null>(null);
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [userAnswer, setUserAnswer] = useState<string | string[] | null>(null);
+  const [userAnswer, setUserAnswer] = useState<string | string[] | Record<string, string> | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean>(false);
   const [isLastQuestion, setIsLastQuestion] = useState<boolean>(false);
 
@@ -114,7 +114,7 @@ const QuestionReview = () => {
             question={question}
             onNext={dummyFunction}
             onComplete={dummyFunction}
-            isLastQuestion={isLastQuestion} // Pass the last question flag
+            isLastQuestion={isLastQuestion}
             onMultipleSelectSubmit={dummyFunction}
             onAnswerSubmit={dummyFunction}
             startTime={0}
