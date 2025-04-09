@@ -15,7 +15,6 @@ type QuestionResult = {
   userAnswer: string | string[] | Record<string, string> | null;
   isCorrect: boolean;
   timeTaken?: number;
-  type?: string;
 };
 
 type ExamResult = {
@@ -61,7 +60,6 @@ const QuestionReview = () => {
     
     const foundQuestionResult = parsedResults.questions.find(q => q.id === questionId);
     if (foundQuestionResult) {
-      console.log("Found question result:", foundQuestionResult);
       setUserAnswer(foundQuestionResult.userAnswer || null);
       setIsCorrect(foundQuestionResult.isCorrect);
     }
@@ -77,15 +75,6 @@ const QuestionReview = () => {
       navigate("/results");
     }
   }, [user, navigate, questionId]);
-
-  // For debugging purposes
-  useEffect(() => {
-    if (question && userAnswer) {
-      console.log("Question type:", question.type);
-      console.log("User answer:", userAnswer);
-      console.log("Is correct:", isCorrect);
-    }
-  }, [question, userAnswer, isCorrect]);
 
   if (!results || !question) {
     return (
