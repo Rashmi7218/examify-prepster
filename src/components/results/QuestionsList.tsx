@@ -1,11 +1,12 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from "@/components/ui/table";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { CheckCircle, XCircle } from "lucide-react";
 import { formatTime } from "@/utils/format";
+import { usePagination } from "@/hooks/usePagination";
 
 interface Question {
   id: string;
@@ -23,17 +24,19 @@ interface QuestionsListProps {
 
 const QuestionsList = ({ questions }: QuestionsListProps) => {
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(1);
   const questionsPerPage = 5;
+  
+  const { 
+    currentPage, 
+    totalPages, 
+    handlePageChange,
+    paginateItems
+  } = usePagination<Question>({
+    totalItems: questions.length,
+    itemsPerPage: questionsPerPage
+  });
 
-  const indexOfLastQuestion = currentPage * questionsPerPage;
-  const indexOfFirstQuestion = indexOfLastQuestion - questionsPerPage;
-  const currentQuestions = questions.slice(indexOfFirstQuestion, indexOfLastQuestion);
-  const totalPages = Math.ceil(questions.length / questionsPerPage);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
+  const currentQuestions = paginateItems(questions);
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
