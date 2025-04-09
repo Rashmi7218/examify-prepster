@@ -1,4 +1,3 @@
-
 import React from "react";
 import QuestionCard, { QuestionType } from "@/components/QuestionCard";
 import MultipleSelectQuestion from "@/components/MultipleSelectQuestion";
@@ -35,26 +34,19 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     const endTime = Date.now();
     const timeTaken = Math.floor((endTime - startTime) / 1000); // Time in seconds
     onAnswerSubmit(question.id, isCorrect, timeTaken);
-    
-    // We don't automatically navigate to the next question here
-    // The navigation is handled by the QuestionCard component's continue button
   };
 
   const handleMultipleSelectSubmit = (selectedIds: string[]) => {
     onMultipleSelectSubmit(selectedIds);
     
-    // Determine if answer is correct
     const correctIds = question.correctOptionIds || [];
     const isCorrect = arraysEqual(selectedIds.sort(), correctIds.sort());
     
     const endTime = Date.now();
     const timeTaken = Math.floor((endTime - startTime) / 1000); // Time in seconds
     onAnswerSubmit(question.id, isCorrect, timeTaken);
-    
-    // Don't automatically navigate to the next question
   };
 
-  // Helper function to compare arrays
   const arraysEqual = (a: any[], b: any[]) => {
     if (a.length !== b.length) return false;
     for (let i = 0; i < a.length; i++) {
@@ -63,11 +55,24 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     return true;
   };
 
-  // Process preSelectedAnswer for type-2 questions
   let userAnswers = {};
   if (isReviewMode && question.type === 'type-2' && preSelectedAnswer && typeof preSelectedAnswer === 'object' && !Array.isArray(preSelectedAnswer)) {
     userAnswers = preSelectedAnswer as Record<string, string>;
   }
+
+  const determineIsCorrect = () => {
+    if (isCorrectOverride !== undefined) {
+      return isCorrectOverride;
+    }
+    
+    if (isReviewMode) {
+      return true;
+    }
+    
+    return false;
+  };
+
+  const isCorrect = determineIsCorrect();
 
   switch (question.type) {
     case 'multiple':
@@ -81,7 +86,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           isReviewMode={isReviewMode}
           preSelectedIds={Array.isArray(preSelectedAnswer) ? preSelectedAnswer : []}
           forceShowExplanation={forceShowExplanation}
-          isCorrectOverride={isCorrectOverride}
+          isCorrectOverride={isCorrect}
           explanation={question.explanation}
           learnMoreLink={question.learnMoreLink}
           onNext={onNext}
@@ -104,7 +109,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           onCompleteExam={onComplete}
           isReviewMode={isReviewMode}
           forceShowExplanation={forceShowExplanation}
-          isCorrectOverride={isCorrectOverride}
+          isCorrectOverride={isCorrect}
           explanation={question.explanation}
           learnMoreLink={question.learnMoreLink}
           userAnswers={userAnswers}
@@ -124,7 +129,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           isReviewMode={isReviewMode}
           preSelectedOptionId={typeof preSelectedAnswer === 'string' ? preSelectedAnswer : null}
           forceShowExplanation={forceShowExplanation}
-          isCorrectOverride={isCorrectOverride}
+          isCorrectOverride={isCorrect}
         />
       );
   }
