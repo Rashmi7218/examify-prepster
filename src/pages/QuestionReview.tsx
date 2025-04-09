@@ -15,6 +15,7 @@ type QuestionResult = {
   userAnswer: string | string[] | Record<string, string> | null;
   isCorrect: boolean;
   timeTaken?: number;
+  type?: string;
 };
 
 type ExamResult = {

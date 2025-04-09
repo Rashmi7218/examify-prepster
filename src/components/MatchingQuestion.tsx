@@ -43,6 +43,10 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
 
   const handleSubmit = () => {
     setSubmitted(true);
+    // If this is not review mode, call onComplete to continue
+    if (!isReviewMode) {
+      onComplete();
+    }
   };
 
   const isAnswerCorrect = (taskId: string) => {
