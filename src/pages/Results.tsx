@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -29,9 +28,10 @@ type ExamResult = {
     id: string;
     text: string;
     correctOption: string | string[];
-    userAnswer: string | string[] | null;
+    userAnswer: string | string[] | Record<string, string> | null;
     isCorrect: boolean;
     timeTaken?: number;
+    type?: string;
   }[];
 };
 
@@ -48,7 +48,6 @@ const Results = () => {
       return;
     }
     
-    // Load results from local storage
     const storedResults = localStorage.getItem("examify-results");
     if (!storedResults) {
       navigate("/dashboard");
@@ -69,14 +68,12 @@ const Results = () => {
     );
   }
 
-  // Format time spent
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  // Format date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString(undefined, {
       year: 'numeric',
@@ -85,18 +82,25 @@ const Results = () => {
     });
   };
 
-  // Calculate pagination for question review
   const indexOfLastQuestion = currentPage * questionsPerPage;
   const indexOfFirstQuestion = indexOfLastQuestion - questionsPerPage;
-  const currentQuestions = results.questions.slice(indexOfFirstQuestion, indexOfLastQuestion);
-  const totalPages = Math.ceil(results.questions.length / questionsPerPage);
 
-  // Handle pagination changes
+  const uniqueQuestions = results?.questions.reduce((acc, current) => {
+    const x = acc.find(item => item.id === current.id);
+    if (!x) {
+      return acc.concat([current]);
+    } else {
+      return acc;
+    }
+  }, [] as ExamResult['questions']) || [];
+
+  const currentQuestions = uniqueQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
+  const totalPages = Math.ceil(uniqueQuestions.length / questionsPerPage);
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
-  // Get exam name based on type
   const getExamName = (examType: string) => {
     switch(examType) {
       case 'athena':
@@ -107,13 +111,11 @@ const Results = () => {
     }
   };
 
-  // Data for pie chart
   const pieData = [
     { name: "Correct", value: results.correctAnswers, color: "#4caf50" },
     { name: "Incorrect", value: results.totalQuestions - results.correctAnswers, color: "#f44336" }
   ];
 
-  // Custom tooltip for pie chart
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -147,7 +149,6 @@ const Results = () => {
           </Button>
         </div>
 
-        {/* Progress bar */}
         <div className="w-full bg-indigo-100 h-2 rounded-full mb-1">
           <div 
             className="bg-indigo-800 h-2 rounded-full" 
@@ -158,7 +159,6 @@ const Results = () => {
           {results.percentage}% Complete
         </div>
         
-        {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           <Card className="col-span-1 md:col-span-2 lg:col-span-1">
             <CardContent className="p-6">
@@ -166,7 +166,6 @@ const Results = () => {
                 <div className="text-6xl font-bold text-center mb-4">{results.percentage}%</div>
                 <div className="text-center mb-2">Correct</div>
                 
-                {/* Pie Chart */}
                 <div className="w-full h-[200px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -189,7 +188,6 @@ const Results = () => {
                   </ResponsiveContainer>
                 </div>
                 
-                {/* Legend */}
                 <div className="flex justify-center gap-6 mt-2">
                   {pieData.map((entry, index) => (
                     <div key={`legend-${index}`} className="flex items-center">
@@ -244,7 +242,6 @@ const Results = () => {
           </Card>
         </div>
         
-        {/* Tabs */}
         <Tabs defaultValue="review" className="w-full mb-8">
           <TabsList className="mb-4">
             <TabsTrigger value="review">Question Review</TabsTrigger>
@@ -303,7 +300,6 @@ const Results = () => {
               </TableBody>
             </Table>
             
-            {/* Pagination */}
             <div className="p-3 border-t">
               <Pagination>
                 <PaginationContent>
