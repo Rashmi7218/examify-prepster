@@ -35,23 +35,33 @@
 
 This project is built with .
 
-- Vite
-- TypeScript
-- React
-- Next.js
-- shadcn-ui
-- Tailwind CSS
-- PostgreSQL
-- Pinecone
-- Supabase
+-  **Backend**
+    - FastAPI
 
+-  **Frontend**
+    - TypeScript
+    - Tailwind CSS
+    - Vite
+    - shadcn-ui
+
+-  **Database**
+    - Supabase
+    - Pinecone
+
+---
 
 ## UI Design
 ![question example](https://github.com/Rashmi7218/examify-prepster/blob/main/example/landing%20page.png)
 
 ![login page](https://github.com/Rashmi7218/examify-prepster/blob/main/example/loginpage.png)
 
-![question example](https://github.com/Rashmi7218/examify-prepster/blob/main/example/examui-2.png)
+![exam start page](https://github.com/Rashmi7218/examify-prepster/blob/main/example/exam-start-page.png)
+
+![correct answer example](https://github.com/Rashmi7218/examify-prepster/blob/main/example/examui-2.png)
+
+![incorrect answer example](https://github.com/Rashmi7218/examify-prepster/blob/main/example/examui-2.png)
+
+![match question example](https://github.com/Rashmi7218/examify-prepster/blob/main/example/examui-3.png)
 
 ![review page](https://github.com/Rashmi7218/examify-prepster/blob/main/example/review-page.png)
 
