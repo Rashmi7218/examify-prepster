@@ -13,5 +13,12 @@ This project is built with .
 - shadcn-ui
 - Tailwind CSS
 
+
+![question example](https://github.com/Rashmi7218/examify-prepster/blob/main/example/landing%20page.png)
+
+![login page](https://github.com/Rashmi7218/examify-prepster/blob/main/example/loginpage.png)
+
 ![question example](https://github.com/Rashmi7218/examify-prepster/blob/main/example/examui-2.png)
+
+![review page](https://github.com/Rashmi7218/examify-prepster/blob/main/example/review-page.png)
 
