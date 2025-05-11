@@ -48,20 +48,34 @@ This project is built with .
     - Supabase
     - Pinecone
 
+- **AI**
+    - Google Gemini 2.0 Flash
+    - Google Gemini Embeddings
+    - Langchain
+    - Pinecone
+    - Lovable (for low-code UI generation)
 ---
 
 ## UI Design
-![question example](https://github.com/Rashmi7218/examify-prepster/blob/main/example/landing%20page.png)
 
+- Landing page
+![landing page](https://github.com/Rashmi7218/examify-prepster/blob/main/example/landing%20page.png)
+
+- Login page
 ![login page](https://github.com/Rashmi7218/examify-prepster/blob/main/example/loginpage.png)
 
+- Exam start page
 ![exam start page](https://github.com/Rashmi7218/examify-prepster/blob/main/example/exam-start-page.png)
 
-![correct answer example](https://github.com/Rashmi7218/examify-prepster/blob/main/example/examui-2.png)
+- Correct answer example
+![correct answer example](https://github.com/Rashmi7218/examify-prepster/blob/main/example/examui-1.png)
 
+- Incorrect answer example
 ![incorrect answer example](https://github.com/Rashmi7218/examify-prepster/blob/main/example/examui-2.png)
 
+- Match question example
 ![match question example](https://github.com/Rashmi7218/examify-prepster/blob/main/example/examui-3.png)
 
+- Result page
 ![review page](https://github.com/Rashmi7218/examify-prepster/blob/main/example/review-page.png)
 
