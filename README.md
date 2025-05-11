@@ -58,24 +58,24 @@ This project is built with .
 
 ## UI Design
 
-- Landing page
+### Landing page
 ![landing page](https://github.com/Rashmi7218/examify-prepster/blob/main/example/landing%20page.png)
 
-- Login page
+### Login page
 ![login page](https://github.com/Rashmi7218/examify-prepster/blob/main/example/loginpage.png)
 
-- Exam start page
+### Exam start page
 ![exam start page](https://github.com/Rashmi7218/examify-prepster/blob/main/example/exam-start-page.png)
 
-- Correct answer example
+### Correct answer example
 ![correct answer example](https://github.com/Rashmi7218/examify-prepster/blob/main/example/examui-1.png)
 
-- Incorrect answer example
+### Incorrect answer example
 ![incorrect answer example](https://github.com/Rashmi7218/examify-prepster/blob/main/example/examui-2.png)
 
-- Match question example
+### Match question example
 ![match question example](https://github.com/Rashmi7218/examify-prepster/blob/main/example/examui-3.png)
 
-- Result page
+### Result page
 ![review page](https://github.com/Rashmi7218/examify-prepster/blob/main/example/review-page.png)
 
