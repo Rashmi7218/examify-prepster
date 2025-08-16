@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -26,29 +25,31 @@ const Exam = () => {
   const { user } = useAuth();
   const { type } = useParams();
   const [searchParams] = useSearchParams();
-  const examType = type || searchParams.get('type') || 'ai-practitioner';
-  
+  const examType = type || searchParams.get("type") || "ai-practitioner";
+
   const getExamQuestions = (): QuestionType[] => {
-    switch(examType) {
-      case 'athena':
+    switch (examType) {
+      case "athena":
         return athenaQuestions;
-      case 'ai-practitioner':
+      case "ai-practitioner":
       default:
         return awsAIPractitionerQuestions;
     }
   };
-  
+
   const mockExamQuestions = getExamQuestions();
-  
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(QUESTION_TIME);
   const [totalTimeRemaining, setTotalTimeRemaining] = useState(EXAM_TIME);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string | string[]>>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<
+    Record<string, string | string[]>
+  >({});
   const [examStarted, setExamStarted] = useState(false);
   const [questionStartTime, setQuestionStartTime] = useState<number>(0);
   const [questionMetrics, setQuestionMetrics] = useState<QuestionMetric[]>([]);
   const [isPaused, setIsPaused] = useState(false);
-  
+
   useEffect(() => {
     if (!user) {
       toast.error("Please login to access exams");
@@ -64,7 +65,7 @@ const Exam = () => {
 
   useEffect(() => {
     if (!examStarted || totalTimeRemaining <= 0 || isPaused) return;
-    
+
     const timer = setInterval(() => {
       setTimeRemaining((prev) => Math.max(0, prev - 1));
       setTotalTimeRemaining((prev) => {
@@ -76,7 +77,7 @@ const Exam = () => {
         return prev - 1;
       });
     }, 1000);
-    
+
     return () => clearInterval(timer);
   }, [examStarted, totalTimeRemaining, isPaused]);
 
@@ -96,29 +97,33 @@ const Exam = () => {
     const question = mockExamQuestions[currentQuestionIndex];
     setSelectedAnswers((prev) => ({
       ...prev,
-      [question.id]: selectedIds
+      [question.id]: selectedIds,
     }));
   };
 
-  const handleAnswerSubmit = (questionId: string, isCorrect: boolean, timeTaken: number) => {
-    const question = mockExamQuestions.find(q => q.id === questionId);
-    
+  const handleAnswerSubmit = (
+    questionId: string,
+    isCorrect: boolean,
+    timeTaken: number
+  ) => {
+    const question = mockExamQuestions.find((q) => q.id === questionId);
+
     if (question) {
-      setQuestionMetrics(prev => [
+      setQuestionMetrics((prev) => [
         ...prev,
         {
           id: questionId,
           isCorrect,
           timeTaken,
-          text: question.text
-        }
+          text: question.text,
+        },
       ]);
     }
   };
 
   const togglePauseExam = () => {
-    setIsPaused(prev => !prev);
-    
+    setIsPaused((prev) => !prev);
+
     if (isPaused) {
       toast.info("Exam resumed");
     } else {
@@ -129,40 +134,52 @@ const Exam = () => {
   const completeExam = () => {
     let correctAnswers = 0;
     const totalTimeTaken = EXAM_TIME - totalTimeRemaining;
-    
-    const answeredQuestionIds = questionMetrics.map(m => m.id);
-    const unansweredQuestions = mockExamQuestions.filter(q => !answeredQuestionIds.includes(q.id));
-    
+
+    const answeredQuestionIds = questionMetrics.map((m) => m.id);
+    const unansweredQuestions = mockExamQuestions.filter(
+      (q) => !answeredQuestionIds.includes(q.id)
+    );
+
     let updatedMetrics = [...questionMetrics];
-    
-    unansweredQuestions.forEach(q => {
+
+    unansweredQuestions.forEach((q) => {
       updatedMetrics.push({
         id: q.id,
         isCorrect: false,
         timeTaken: 0,
-        text: q.text
+        text: q.text,
       });
     });
-    
-    correctAnswers = updatedMetrics.filter(m => m.isCorrect).length;
-    
-    const domainData = analyzeDomainPerformance(mockExamQuestions, updatedMetrics);
-    
-    const correctAnswerTimes = updatedMetrics.filter(m => m.isCorrect).map(m => m.timeTaken);
-    const incorrectAnswerTimes = updatedMetrics.filter(m => !m.isCorrect).map(m => m.timeTaken);
-    
-    const avgCorrectTime = correctAnswerTimes.length 
-      ? correctAnswerTimes.reduce((sum, time) => sum + time, 0) / correctAnswerTimes.length 
+
+    correctAnswers = updatedMetrics.filter((m) => m.isCorrect).length;
+
+    const domainData = analyzeDomainPerformance(
+      mockExamQuestions,
+      updatedMetrics
+    );
+
+    const correctAnswerTimes = updatedMetrics
+      .filter((m) => m.isCorrect)
+      .map((m) => m.timeTaken);
+    const incorrectAnswerTimes = updatedMetrics
+      .filter((m) => !m.isCorrect)
+      .map((m) => m.timeTaken);
+
+    const avgCorrectTime = correctAnswerTimes.length
+      ? correctAnswerTimes.reduce((sum, time) => sum + time, 0) /
+        correctAnswerTimes.length
       : 0;
-      
-    const avgIncorrectTime = incorrectAnswerTimes.length 
-      ? incorrectAnswerTimes.reduce((sum, time) => sum + time, 0) / incorrectAnswerTimes.length 
+
+    const avgIncorrectTime = incorrectAnswerTimes.length
+      ? incorrectAnswerTimes.reduce((sum, time) => sum + time, 0) /
+        incorrectAnswerTimes.length
       : 0;
-      
-    const avgAnswerTime = updatedMetrics.length 
-      ? updatedMetrics.reduce((sum, m) => sum + m.timeTaken, 0) / updatedMetrics.length 
+
+    const avgAnswerTime = updatedMetrics.length
+      ? updatedMetrics.reduce((sum, m) => sum + m.timeTaken, 0) /
+        updatedMetrics.length
       : 0;
-    
+
     const results = {
       examType,
       totalQuestions: mockExamQuestions.length,
@@ -174,40 +191,51 @@ const Exam = () => {
       avgIncorrectTime,
       avgAnswerTime,
       domainPerformance: domainData,
-      questions: updatedMetrics.map(metric => {
-        const q = mockExamQuestions.find(q => q.id === metric.id);
-        
+      questions: updatedMetrics.map((metric) => {
+        const q = mockExamQuestions.find((q) => q.id === metric.id);
+
         return {
           id: metric.id,
           text: metric.text,
           correctOption: q?.correctOptionId || q?.correctOptionIds || [],
           userAnswer: selectedAnswers[metric.id] || null,
           isCorrect: metric.isCorrect,
-          timeTaken: metric.timeTaken
+          timeTaken: metric.timeTaken,
         };
       }),
     };
-    
+
     localStorage.setItem("examify-results", JSON.stringify(results));
-    
+
     navigate("/results");
   };
 
-  const analyzeDomainPerformance = (questions: QuestionType[], metrics: QuestionMetric[]) => {
-    const domains = ["AWS Services", "Machine Learning", "Data Storage", "Security"];
-    
+  const analyzeDomainPerformance = (
+    questions: QuestionType[],
+    metrics: QuestionMetric[]
+  ) => {
+    const domains = [
+      "AWS Services",
+      "Machine Learning",
+      "Data Storage",
+      "Security",
+    ];
+
     const domainMap: Record<string, string> = {};
     questions.forEach((q, index) => {
       domainMap[q.id] = domains[index % domains.length];
     });
-    
-    const domainPerformance: Record<string, {correct: number, incorrect: number}> = {};
-    
-    domains.forEach(domain => {
-      domainPerformance[domain] = {correct: 0, incorrect: 0};
+
+    const domainPerformance: Record<
+      string,
+      { correct: number; incorrect: number }
+    > = {};
+
+    domains.forEach((domain) => {
+      domainPerformance[domain] = { correct: 0, incorrect: 0 };
     });
-    
-    metrics.forEach(metric => {
+
+    metrics.forEach((metric) => {
       const domain = domainMap[metric.id] || "Other";
       if (metric.isCorrect) {
         domainPerformance[domain].correct += 1;
@@ -215,20 +243,22 @@ const Exam = () => {
         domainPerformance[domain].incorrect += 1;
       }
     });
-    
+
     return Object.entries(domainPerformance).map(([name, data]) => ({
       name,
       correct: data.correct,
-      incorrect: data.incorrect
+      incorrect: data.incorrect,
     }));
   };
 
   if (!examStarted) {
-    return <ExamIntro 
-      examType={examType} 
-      onStart={startExam} 
-      onReturn={() => navigate("/")} 
-    />;
+    return (
+      <ExamIntro
+        examType={examType}
+        onStart={startExam}
+        onReturn={() => navigate("/")}
+      />
+    );
   }
 
   const currentQuestion = mockExamQuestions[currentQuestionIndex];
@@ -246,13 +276,17 @@ const Exam = () => {
             pauseExam={togglePauseExam}
             isPaused={isPaused}
           />
-          
+
           <div className="bg-white p-6 rounded-lg shadow-sm border">
             {isPaused ? (
               <div className="py-20 text-center">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">Exam Paused</h2>
-                <p className="text-gray-600 mb-6">Click the Resume button to continue your exam.</p>
-                <Button 
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                  Exam Paused
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  Click the Resume button to continue your exam.
+                </p>
+                <Button
                   onClick={togglePauseExam}
                   className="bg-indigo-900 hover:bg-indigo-800 text-white"
                 >

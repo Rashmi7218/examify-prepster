@@ -79,3 +79,19 @@ This project is built with .
 ### Result page
 ![review page](https://github.com/Rashmi7218/examify-prepster/blob/main/example/review-page.png)
 
+
+## Supabase Authentication Setup
+
+1. Create a project at [Supabase](https://supabase.com/).
+2. Go to Project Settings > API and copy your `Project URL` and `anon` public key.
+3. In your project root, create a `.env` file (or use your Vite env file, e.g., `.env.local`) and add:
+
+```
+VITE_SUPABASE_URL=your-supabase-url
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+4. Restart your dev server after adding environment variables.
+
+5. The login form now uses Supabase authentication.
+

@@ -1,7 +1,12 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { CheckCircle, XCircle } from "lucide-react";
 
 type TaskItem = {
@@ -14,7 +19,7 @@ type MatchingQuestionProps = {
   questionText: string;
   tasks: TaskItem[];
   options: { id: string; text: string }[];
-  onComplete: () => void;
+  onComplete: (userSelections: Record<string, string>) => void; // Modified
   isReviewMode?: boolean;
   userAnswers?: Record<string, string>;
 };
@@ -27,14 +32,14 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
   isReviewMode = false,
   userAnswers = {},
 }) => {
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>(
-    isReviewMode && Object.keys(userAnswers).length > 0 ? userAnswers : {}
-  );
+  const [selectedAnswers, setSelectedAnswers] = useState<
+    Record<string, string>
+  >(isReviewMode && Object.keys(userAnswers).length > 0 ? userAnswers : {});
   const [submitted, setSubmitted] = useState(isReviewMode);
 
   const handleSelectChange = (taskId: string, value: string) => {
     if (submitted) return;
-    
+
     setSelectedAnswers((prev) => ({
       ...prev,
       [taskId]: value,
@@ -43,24 +48,25 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
 
   const handleSubmit = () => {
     setSubmitted(true);
+    onComplete(selectedAnswers); // Pass selectedAnswers on complete
   };
 
   const isAnswerCorrect = (taskId: string) => {
-    const task = tasks.find(t => t.id === taskId);
+    const task = tasks.find((t) => t.id === taskId);
     return task && selectedAnswers[taskId] === task.correctId;
   };
 
   const getCorrectAnswer = (taskId: string) => {
-    const task = tasks.find(t => t.id === taskId);
+    const task = tasks.find((t) => t.id === taskId);
     return task ? task.correctId : "";
   };
 
-  const allQuestionsAnswered = tasks.every(task => selectedAnswers[task.id]);
+  const allQuestionsAnswered = tasks.every((task) => selectedAnswers[task.id]);
 
   return (
     <div className="question-container">
       <h3 className="text-lg font-medium mb-4">{questionText}</h3>
-      
+
       <div className="space-y-6 mb-6">
         <div className="flex flex-col space-y-2 mb-4">
           <ul className="mb-2">
@@ -78,11 +84,13 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
               <div className="flex-1">
                 <p className="text-base">{task.text}</p>
               </div>
-              
+
               <div className="ml-4 w-80">
                 {!submitted ? (
                   <Select
-                    onValueChange={(value) => handleSelectChange(task.id, value)}
+                    onValueChange={(value) =>
+                      handleSelectChange(task.id, value)
+                    }
                     value={selectedAnswers[task.id] || ""}
                     disabled={submitted}
                   >
@@ -98,12 +106,19 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
                     </SelectContent>
                   </Select>
                 ) : (
-                  <div className={`
+                  <div
+                    className={`
                     flex items-center p-2 rounded-md border
-                    ${isAnswerCorrect(task.id) ? "bg-green-50 border-green-500" : "bg-red-50 border-red-500"}
-                  `}>
+                    ${
+                      isAnswerCorrect(task.id)
+                        ? "bg-green-50 border-green-500"
+                        : "bg-red-50 border-red-500"
+                    }
+                  `}
+                  >
                     <span className="flex-1">
-                      {options.find(o => o.id === selectedAnswers[task.id])?.text || 'Not selected'}
+                      {options.find((o) => o.id === selectedAnswers[task.id])
+                        ?.text || "Not selected"}
                     </span>
                     {isAnswerCorrect(task.id) ? (
                       <CheckCircle className="text-green-500 ml-2" size={20} />
@@ -114,11 +129,15 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
                 )}
               </div>
             </div>
-            
+
             {submitted && !isAnswerCorrect(task.id) && (
               <div className="ml-auto mr-0 w-80 text-right">
                 <p className="text-sm text-green-600">
-                  Correct: {options.find(o => o.id === getCorrectAnswer(task.id))?.text}
+                  Correct:{" "}
+                  {
+                    options.find((o) => o.id === getCorrectAnswer(task.id))
+                      ?.text
+                  }
                 </p>
               </div>
             )}
@@ -128,7 +147,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
 
       <div className="flex justify-end mt-6">
         {!submitted ? (
-          <Button 
+          <Button
             onClick={handleSubmit}
             disabled={!allQuestionsAnswered}
             className="bg-indigo-900 hover:bg-indigo-800 text-white"
@@ -136,7 +155,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
             Confirm
           </Button>
         ) : (
-          <Button 
+          <Button
             onClick={onComplete}
             className="bg-indigo-900 hover:bg-indigo-800 text-white"
           >
