@@ -5,7 +5,12 @@ import { toast } from "sonner";
 import { Clock, Pause, Play } from "lucide-react"; // Added Play import
 import { Button } from "@/components/ui/button"; // Added Button import
 import { QuestionType } from "@/components/QuestionCard";
-import { awsAIPractitionerQuestions, athenaQuestions } from "@/utils/examData";
+import {
+  awsAIPractitionerQuestions,
+  athenaQuestions,
+  cloudPractitionerQuestions,
+  solutionsArchitectQuestions,
+} from "@/utils/examData";
 import ExamProgress from "@/components/exam/ExamProgress";
 import ExamIntro from "@/components/exam/ExamIntro";
 import QuestionRenderer from "@/components/exam/QuestionRenderer";
@@ -32,6 +37,11 @@ const Exam = () => {
       case "athena":
         return athenaQuestions;
       case "ai-practitioner":
+        return awsAIPractitionerQuestions;
+      case "cloud-practitioner":
+        return cloudPractitionerQuestions;
+      case "solutions-architect":
+        return solutionsArchitectQuestions;
       default:
         return awsAIPractitionerQuestions;
     }

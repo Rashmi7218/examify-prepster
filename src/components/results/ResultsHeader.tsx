@@ -24,13 +24,13 @@ const ResultsHeader = ({ examName, percentage }: ResultsHeaderProps) => {
           Back
         </Button>
         <h1 className="text-xl font-medium flex-1">{examName}</h1>
-        <Button 
+        {/* <Button 
           variant="outline" 
           className="text-red-500 border-red-500 hover:bg-red-50"
           onClick={() => navigate("/exam")}
         >
           Reset Product
-        </Button>
+        </Button> */}
       </div>
 
       <div className="w-full bg-indigo-100 h-2 rounded-full mb-1">

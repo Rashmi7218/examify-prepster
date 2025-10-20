@@ -1,11 +1,17 @@
-
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { toast } from "sonner";
 
 const Login = () => {
@@ -16,13 +22,16 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       await login(email, password);
       toast.success("Login successful!");
-      navigate("/Exam");
+      navigate("/dashboard");
     } catch (error) {
-      toast.error("Login failed. Please check your credentials.");
+      const err = error as { message?: string };
+      toast.error(
+        err?.message || "Login failed. Please check your credentials."
+      );
       console.error(error);
     }
   };
@@ -54,7 +63,10 @@ const Login = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                <Link to="/forgot-password" className="text-sm text-examify-blue hover:underline">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-examify-blue hover:underline"
+                >
                   Forgot password?
                 </Link>
               </div>
@@ -67,9 +79,9 @@ const Login = () => {
                 required
               />
             </div>
-            <Button 
-              type="submit" 
-              className="w-full bg-examify-blue hover:bg-blue-600" 
+            <Button
+              type="submit"
+              className="w-full bg-examify-blue hover:bg-blue-600"
               disabled={isLoading}
             >
               {isLoading ? "Signing in..." : "Sign In"}
@@ -88,7 +100,9 @@ const Login = () => {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
+              <span className="bg-white px-2 text-muted-foreground">
+                Or continue with
+              </span>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">

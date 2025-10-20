@@ -20,10 +20,17 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Initialize Supabase client
+// Initialize Supabase client with basic env validation
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+const isMissingSupabaseConfig =
+  !supabaseUrl ||
+  !supabaseAnonKey ||
+  supabaseUrl.includes("placeholder") ||
+  supabaseAnonKey.includes("placeholder");
+
+const supabase = createClient(supabaseUrl || "", supabaseAnonKey || "");
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -43,6 +50,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
+      if (isMissingSupabaseConfig) {
+        throw new Error(
+          "Supabase configuration is missing. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY."
+        );
+      }
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
