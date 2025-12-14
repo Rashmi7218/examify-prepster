@@ -13,25 +13,12 @@ import { Badge } from "@/components/ui/badge";
 import {
   BookOpen,
   Clock,
-  Users,
   Award,
   TrendingUp,
-  ArrowRight,
   LogOut,
   History,
 } from "lucide-react";
-
-type AWSExam = {
-  id: string;
-  title: string;
-  description: string;
-  duration: string;
-  questions: number;
-  difficulty: "Beginner" | "Intermediate" | "Advanced";
-  category: string;
-  icon: React.ReactNode;
-  color: string;
-};
+import { awsExams, type AWSExam } from "@/data/awsExams";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -53,387 +40,6 @@ const Dashboard = () => {
     }
   }, [user, navigate]);
 
-  const awsExams: AWSExam[] = [
-    {
-      id: "ai-practitioner",
-      title: "AWS Certified AI Practitioner",
-      description: "Validate your ability to implement AI/ML solutions on AWS",
-      duration: "20 minutes",
-      questions: 15,
-      difficulty: "Beginner",
-      category: "AI/ML",
-      icon: <BookOpen className="h-8 w-8" />,
-      color: "bg-blue-500",
-    },
-    // Beginner - dummy examples
-    {
-      id: "beg-ec2-fundamentals",
-      title: "EC2 Fundamentals",
-      description: "Basics of compute on AWS using EC2 instances",
-      duration: "18 minutes",
-      questions: 12,
-      difficulty: "Beginner",
-      category: "Compute",
-      icon: <BookOpen className="h-8 w-8" />,
-      color: "bg-blue-500",
-    },
-    {
-      id: "beg-s3-essentials",
-      title: "S3 Essentials",
-      description: "Getting started with Amazon S3 buckets and objects",
-      duration: "20 minutes",
-      questions: 15,
-      difficulty: "Beginner",
-      category: "Storage",
-      icon: <BookOpen className="h-8 w-8" />,
-      color: "bg-blue-500",
-    },
-    {
-      id: "beg-iam-basics",
-      title: "IAM Basics",
-      description: "Intro to identities, users, groups and policies",
-      duration: "16 minutes",
-      questions: 12,
-      difficulty: "Beginner",
-      category: "Security",
-      icon: <BookOpen className="h-8 w-8" />,
-      color: "bg-blue-500",
-    },
-    {
-      id: "beg-vpc-overview",
-      title: "VPC Overview",
-      description: "Foundations of networking in AWS with VPC",
-      duration: "22 minutes",
-      questions: 16,
-      difficulty: "Beginner",
-      category: "Networking",
-      icon: <BookOpen className="h-8 w-8" />,
-      color: "bg-blue-500",
-    },
-    {
-      id: "beg-rds-intro",
-      title: "RDS Intro",
-      description: "Managed relational databases on AWS",
-      duration: "18 minutes",
-      questions: 12,
-      difficulty: "Beginner",
-      category: "Database",
-      icon: <BookOpen className="h-8 w-8" />,
-      color: "bg-blue-500",
-    },
-    {
-      id: "beg-lambda-getting-started",
-      title: "Lambda Getting Started",
-      description: "Basics of serverless compute with AWS Lambda",
-      duration: "15 minutes",
-      questions: 10,
-      difficulty: "Beginner",
-      category: "Serverless",
-      icon: <BookOpen className="h-8 w-8" />,
-      color: "bg-blue-500",
-    },
-    {
-      id: "beg-cloudwatch-fundamentals",
-      title: "CloudWatch Fundamentals",
-      description: "Monitoring and metrics on AWS",
-      duration: "14 minutes",
-      questions: 10,
-      difficulty: "Beginner",
-      category: "Monitoring",
-      icon: <BookOpen className="h-8 w-8" />,
-      color: "bg-blue-500",
-    },
-    {
-      id: "beg-sns-sqs-basics",
-      title: "SNS & SQS Basics",
-      description: "Messaging and queuing foundations",
-      duration: "17 minutes",
-      questions: 12,
-      difficulty: "Beginner",
-      category: "Integration",
-      icon: <BookOpen className="h-8 w-8" />,
-      color: "bg-blue-500",
-    },
-    {
-      id: "beg-route53-overview",
-      title: "Route 53 Overview",
-      description: "DNS fundamentals with Amazon Route 53",
-      duration: "16 minutes",
-      questions: 12,
-      difficulty: "Beginner",
-      category: "Networking",
-      icon: <BookOpen className="h-8 w-8" />,
-      color: "bg-blue-500",
-    },
-    {
-      id: "beg-cloudfront-essentials",
-      title: "CloudFront Essentials",
-      description: "CDN basics and edge networking",
-      duration: "18 minutes",
-      questions: 12,
-      difficulty: "Beginner",
-      category: "Networking",
-      icon: <BookOpen className="h-8 w-8" />,
-      color: "bg-blue-500",
-    },
-    {
-      id: "athena",
-      title: "Amazon Athena",
-      description:
-        "Interactive query service for analyzing data in S3 using SQL",
-      duration: "15 minutes",
-      questions: 10,
-      difficulty: "Intermediate",
-      category: "Analytics",
-      icon: <TrendingUp className="h-8 w-8" />,
-      color: "bg-green-500",
-    },
-    // Intermediate - dummy examples
-    {
-      id: "int-ecs-fundamentals",
-      title: "ECS Fundamentals",
-      description: "Containers on AWS with ECS",
-      duration: "22 minutes",
-      questions: 16,
-      difficulty: "Intermediate",
-      category: "Containers",
-      icon: <TrendingUp className="h-8 w-8" />,
-      color: "bg-green-500",
-    },
-    {
-      id: "int-eks-basics",
-      title: "EKS Basics",
-      description: "Kubernetes on AWS essentials",
-      duration: "24 minutes",
-      questions: 18,
-      difficulty: "Intermediate",
-      category: "Containers",
-      icon: <TrendingUp className="h-8 w-8" />,
-      color: "bg-green-500",
-    },
-    {
-      id: "int-redshift-intro",
-      title: "Redshift Intro",
-      description: "Data warehousing concepts on AWS",
-      duration: "20 minutes",
-      questions: 15,
-      difficulty: "Intermediate",
-      category: "Analytics",
-      icon: <TrendingUp className="h-8 w-8" />,
-      color: "bg-green-500",
-    },
-    {
-      id: "int-emr-overview",
-      title: "EMR Overview",
-      description: "Managed Hadoop and Spark at scale",
-      duration: "21 minutes",
-      questions: 16,
-      difficulty: "Intermediate",
-      category: "Analytics",
-      icon: <TrendingUp className="h-8 w-8" />,
-      color: "bg-green-500",
-    },
-    {
-      id: "int-apigateway-lambda-patterns",
-      title: "API Gateway Patterns",
-      description: "Serverless APIs and integrations",
-      duration: "19 minutes",
-      questions: 14,
-      difficulty: "Intermediate",
-      category: "Serverless",
-      icon: <TrendingUp className="h-8 w-8" />,
-      color: "bg-green-500",
-    },
-    {
-      id: "int-kinesis-streaming",
-      title: "Kinesis Streaming",
-      description: "Real-time data streaming on AWS",
-      duration: "20 minutes",
-      questions: 15,
-      difficulty: "Intermediate",
-      category: "Analytics",
-      icon: <TrendingUp className="h-8 w-8" />,
-      color: "bg-green-500",
-    },
-    {
-      id: "int-elasticache-redis",
-      title: "ElastiCache with Redis",
-      description: "Caching strategies and patterns",
-      duration: "18 minutes",
-      questions: 13,
-      difficulty: "Intermediate",
-      category: "Database",
-      icon: <TrendingUp className="h-8 w-8" />,
-      color: "bg-green-500",
-    },
-    {
-      id: "int-s3-advanced-features",
-      title: "S3 Advanced Features",
-      description: "Lifecycle, replication and access points",
-      duration: "19 minutes",
-      questions: 14,
-      difficulty: "Intermediate",
-      category: "Storage",
-      icon: <TrendingUp className="h-8 w-8" />,
-      color: "bg-green-500",
-    },
-    {
-      id: "int-waf-shield-overview",
-      title: "WAF & Shield Overview",
-      description: "Protecting apps from common exploits",
-      duration: "17 minutes",
-      questions: 12,
-      difficulty: "Intermediate",
-      category: "Security",
-      icon: <TrendingUp className="h-8 w-8" />,
-      color: "bg-green-500",
-    },
-    {
-      id: "int-cdk-basics",
-      title: "CDK Basics",
-      description: "Infrastructure as code with TypeScript",
-      duration: "20 minutes",
-      questions: 15,
-      difficulty: "Intermediate",
-      category: "IaC",
-      icon: <TrendingUp className="h-8 w-8" />,
-      color: "bg-green-500",
-    },
-    {
-      id: "cloud-practitioner",
-      title: "AWS Cloud Practitioner",
-      description: "Foundational understanding of AWS Cloud concepts",
-      duration: "25 minutes",
-      questions: 20,
-      difficulty: "Beginner",
-      category: "Foundational",
-      icon: <Award className="h-8 w-8" />,
-      color: "bg-purple-500",
-    },
-    {
-      id: "solutions-architect",
-      title: "AWS Solutions Architect",
-      description: "Design distributed systems on AWS platform",
-      duration: "30 minutes",
-      questions: 25,
-      difficulty: "Advanced",
-      category: "Architecture",
-      icon: <Users className="h-8 w-8" />,
-      color: "bg-orange-500",
-    },
-    // Advanced - dummy examples
-    {
-      id: "adv-architecting-ha",
-      title: "Architecting for HA",
-      description: "Design highly available architectures",
-      duration: "28 minutes",
-      questions: 22,
-      difficulty: "Advanced",
-      category: "Architecture",
-      icon: <Users className="h-8 w-8" />,
-      color: "bg-orange-500",
-    },
-    {
-      id: "adv-microservices-design",
-      title: "Microservices Design",
-      description: "Best practices on AWS for microservices",
-      duration: "26 minutes",
-      questions: 20,
-      difficulty: "Advanced",
-      category: "Architecture",
-      icon: <Users className="h-8 w-8" />,
-      color: "bg-orange-500",
-    },
-    {
-      id: "adv-networking-deep-dive",
-      title: "Networking Deep Dive",
-      description: "Hybrid networking and advanced routing",
-      duration: "30 minutes",
-      questions: 24,
-      difficulty: "Advanced",
-      category: "Networking",
-      icon: <Users className="h-8 w-8" />,
-      color: "bg-orange-500",
-    },
-    {
-      id: "adv-security-best-practices",
-      title: "Security Best Practices",
-      description: "Encryption, keys and compliance on AWS",
-      duration: "27 minutes",
-      questions: 21,
-      difficulty: "Advanced",
-      category: "Security",
-      icon: <Users className="h-8 w-8" />,
-      color: "bg-orange-500",
-    },
-    {
-      id: "adv-cost-optimization",
-      title: "Cost Optimization",
-      description: "Optimizing spend across workloads",
-      duration: "24 minutes",
-      questions: 18,
-      difficulty: "Advanced",
-      category: "FinOps",
-      icon: <Users className="h-8 w-8" />,
-      color: "bg-orange-500",
-    },
-    {
-      id: "adv-sagemaker-mlops",
-      title: "SageMaker MLOps",
-      description: "Productionizing ML on AWS",
-      duration: "25 minutes",
-      questions: 19,
-      difficulty: "Advanced",
-      category: "AI/ML",
-      icon: <Users className="h-8 w-8" />,
-      color: "bg-orange-500",
-    },
-    {
-      id: "adv-multi-account-strategy",
-      title: "Multi-Account Strategy",
-      description: "Organizations, SCPs and guardrails",
-      duration: "26 minutes",
-      questions: 20,
-      difficulty: "Advanced",
-      category: "Governance",
-      icon: <Users className="h-8 w-8" />,
-      color: "bg-orange-500",
-    },
-    {
-      id: "adv-event-driven-architectures",
-      title: "Event-driven Architectures",
-      description: "Asynchronous patterns at scale",
-      duration: "25 minutes",
-      questions: 19,
-      difficulty: "Advanced",
-      category: "Architecture",
-      icon: <Users className="h-8 w-8" />,
-      color: "bg-orange-500",
-    },
-    {
-      id: "adv-data-lakes-lakehouse",
-      title: "Data Lakes & Lakehouse",
-      description: "Modern analytics architectures on AWS",
-      duration: "29 minutes",
-      questions: 23,
-      difficulty: "Advanced",
-      category: "Analytics",
-      icon: <Users className="h-8 w-8" />,
-      color: "bg-orange-500",
-    },
-    {
-      id: "adv-global-scale-design",
-      title: "Global-Scale Design",
-      description: "Designing for multi-region and edge",
-      duration: "30 minutes",
-      questions: 24,
-      difficulty: "Advanced",
-      category: "Architecture",
-      icon: <Users className="h-8 w-8" />,
-      color: "bg-orange-500",
-    },
-  ];
-
   const handleStartExam = (examId: string) => {
     navigate(`/exam/${examId}`);
   };
@@ -445,6 +51,10 @@ const Dashboard = () => {
   const handleLogout = () => {
     logout();
     navigate("/login");
+  };
+
+  const handleSubscribe = () => {
+    navigate("/subscribe");
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -473,6 +83,13 @@ const Dashboard = () => {
               </p>
             </div>
             <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                onClick={handleSubscribe}
+                className="flex items-center gap-2"
+              >
+                Subscribe
+              </Button>
               {recentResults.length > 0 && (
                 <Button
                   variant="outline"

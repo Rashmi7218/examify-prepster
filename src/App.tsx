@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 import QuestionReview from "./pages/QuestionReview";
 import ForgotPassword from "./pages/ForgotPassword"; // Import ForgotPassword
 import ResetPassword from "./pages/ResetPassword"; // Import ResetPassword
+import Subscribe from "./pages/Subscribe";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
             Add ForgotPassword route
             <Route path="/reset-password" element={<ResetPassword />} /> // Add
             ResetPassword route
+            <Route path="/subscribe" element={<Subscribe />} />
             <Route path="/exam" element={<Exam />} />
             <Route path="/exam/:type" element={<Exam />} />
             <Route path="/dashboard" element={<Dashboard />} />
