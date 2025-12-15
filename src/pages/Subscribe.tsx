@@ -65,7 +65,8 @@ const Subscribe: React.FC = () => {
   const selectedCert = useMemo<AWSExam | undefined>(() => {
     return awsExams.find((cert) => cert.id === selectedCertId) || awsExams[0];
   }, [selectedCertId]);
-
+  console.log("selectedCertId");
+  console.log(selectedCertId);
   useEffect(() => {
     if (!user) {
       navigate("/login");
@@ -190,19 +191,24 @@ const Subscribe: React.FC = () => {
                   setIsSubmitting(true);
                   setError(null);
                   try {
-                    const resp = await fetch("/api/checkout-link", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        cert_id: selectedCertId,
-                        tier_id: selectedExamType.id,
-                        customer_email: user?.email,
-                        metadata: {
-                          cert: selectedCertId,
-                          tier: selectedExamType.id,
-                        },
-                      }),
-                    });
+                    const payload = {
+                      cert_id: selectedCertId,
+                      tier_id: selectedExamType.id,
+                      customer_name:
+                        user?.name || user?.email || "Examify User",
+                    };
+                    console.log("checkout-session payload", payload);
+                    const apiBase =
+                      import.meta.env.VITE_API_BASE || "http://localhost:8000";
+                    console.log("apiBase", apiBase);
+                    const resp = await fetch(
+                      `${apiBase}/api/checkout-session`,
+                      {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload),
+                      }
+                    );
                     if (!resp.ok) {
                       const msg = await resp.text();
                       throw new Error(msg || "Failed to create checkout link");

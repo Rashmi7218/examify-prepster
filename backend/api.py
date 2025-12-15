@@ -1,17 +1,26 @@
 import os
-from itertools import count, product
-from typing import Dict, Optional
 
 import polar_sdk
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from polar_sdk import Polar
-from pydantic import BaseModel
 
-from backend.polar_client import PolarClient, resolve_product_id
+from backend.polar_client import resolve_product_id
+from backend.schemas import (
+    CheckoutResponse,
+    CheckoutSessionRequest,
+    CustomerRequest,
+    SubscriptionRequest,
+)
 
 # Environment toggles
 USE_SANDBOX = os.getenv("POLAR_USE_SANDBOX", "true").lower() == "true"
+POLAR_TOKEN = (
+    os.getenv("POLAR_SANDBOX_ACCESS_TOKEN")
+    if USE_SANDBOX
+    else os.getenv("POLAR_ACCESS_TOKEN")
+)
+POLAR_SERVER = "sandbox" if USE_SANDBOX else "production"
 
 app = FastAPI(title="Polar bridge API")
 
@@ -24,35 +33,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+if not POLAR_TOKEN:
+    raise RuntimeError("Missing POLAR access token for the selected environment.")
 
-class CheckoutRequest(BaseModel):
-    cert_id: str
-    tier_id: str
-    customer_email: Optional[str] = None
-    customer_id: Optional[str] = None
-    metadata: Optional[Dict[str, str]] = None
-
-
-class CheckoutResponse(BaseModel):
-    url: str
-    checkout_id: Optional[str] = None
-
-
-class billingAddress(BaseModel):
-    country: dict = {"country": polar_sdk.CountryAlpha2Input.US}
-
-
-class CheckoutSessionRequest(BaseModel):
-    customer_name: str
-    customer_billing_address: dict = billingAddress
-    cert_id: str
-    tier_id: str
-
-
-polar = Polar(
-    access_token=os.getenv("POLAR_SANDBOX_ACCESS_TOKEN"),
-    server="sandbox",
-)
+polar = Polar(access_token=POLAR_TOKEN, server=POLAR_SERVER)
 
 
 @app.get("/api/get-customers-list")
@@ -68,11 +52,20 @@ def get_customers_list():
     return res
 
 
+@app.get("/api/product-list")
+def get_product_list():
+    res = polar.products.list(organization_id=None, page=1, limit=10)
+
+    products = res.result.items
+
+    return products
+
+
 @app.post("/api/checkout-session")
 def create_checkout_session(payload: CheckoutSessionRequest):
-    product_id = resolve_product_id(payload.cert_id, payload.tier_id)
-    print(f"{product_id = }")
-    if not product_id:
+    product_price_id = resolve_product_id(payload.cert_id, payload.tier_id)
+    print(f"{product_price_id = }")
+    if not product_price_id:
         raise HTTPException(status_code=400, detail="Unknown product for cert/tier")
 
     try:
@@ -81,65 +74,42 @@ def create_checkout_session(payload: CheckoutSessionRequest):
             "customer_billing_address": {
                 "country": polar_sdk.CountryAlpha2Input.US,
             },
-            "products": [product_id],
+            "products": [product_price_id],
         }
         print(f"{input = }")
         data = polar.checkouts.create(request=input)
         print(f"{data = }")
+        print(f"{type(data) = }")
+
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
-    # return CheckoutResponse(url=data.get("url"), checkout_id=data.get("id"))
-    return data
-
-
-@app.post("/api/checkout-link", response_model=CheckoutResponse)
-def create_checkout_link(payload: CheckoutRequest):
-    product_price_id = resolve_product_id(payload.cert_id, payload.tier_id)
-    print(f"{product_price_id = }")
-    if not product_price_id:
-        raise HTTPException(status_code=400, detail="Unknown product for cert/tier")
-
-    client = PolarClient(use_sandbox=USE_SANDBOX)
-    try:
-        data = client.create_checkout_link(
-            product_price_id=product_price_id,
-            metadata=payload.metadata,
-            success_url=os.getenv("POLAR_SUCCESS_URL"),
-            cancel_url=os.getenv("POLAR_CANCEL_URL"),
-        )
-        print(f"{data = }")
-    except Exception as exc:  # noqa: BLE001
-        raise HTTPException(status_code=500, detail=str(exc))
-
-    url = data.get("url") or data.get("checkout_url")
-    print(f"{url = }")
-    return CheckoutResponse(url=url, checkout_id=data.get("id"))
-
-
-class CustomerRequest(BaseModel):
-    email: str
-    name: Optional[str] = None
-    metadata: Optional[Dict[str, str]] = None
+    return CheckoutResponse(url=data.url, checkout_id=data.id)
 
 
 @app.post("/api/customers")
 def create_customer(payload: CustomerRequest):
-    client = PolarClient(use_sandbox=USE_SANDBOX)
     try:
-        return client.create_customer(
-            email=payload.email, name=payload.name, metadata=payload.metadata
+        res = polar.customers.create(
+            request={
+                "external_id": payload.external_id,
+                "email": payload.email,
+                "name": payload.name,
+                "billing_address": {
+                    "country": polar_sdk.CountryAlpha2Input.US,
+                },
+                "tax_id": [
+                    "911144442",
+                    "us_ein",
+                ],
+                # "organization_id": "1dbfc517-0bbf-4301-9ba8-555ca42b9737",
+            }
         )
+        print(f"{res = }")
+        return res
+
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(exc))
-
-
-class SubscriptionRequest(BaseModel):
-    cert_id: str
-    tier_id: str
-    customer_id: str
-    trial_days: Optional[int] = None
-    metadata: Optional[Dict[str, str]] = None
 
 
 @app.post("/api/subscriptions")
@@ -148,14 +118,15 @@ def create_subscription(payload: SubscriptionRequest):
     if not product_price_id:
         raise HTTPException(status_code=400, detail="Unknown product for cert/tier")
 
-    client = PolarClient(use_sandbox=USE_SANDBOX)
     try:
-        return client.create_subscription(
-            product_price_id=product_price_id,
-            customer_id=payload.customer_id,
-            trial_days=payload.trial_days,
-            metadata=payload.metadata,
+        res = polar.subscriptions.create(
+            request={
+                "product_id": product_price_id,
+                "customer_id": payload.customer_id,
+            }
         )
+        print(f"{res = }")
+        return res
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(exc))
 
